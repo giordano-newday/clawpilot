@@ -15,6 +15,7 @@ export default defineConfig({
         'src/**/__tests__/**',
         'src/index.ts',
         'src/browser.ts',
+        'src/web.ts',
         'src/commands/**',
         'src/health.ts',
       ],

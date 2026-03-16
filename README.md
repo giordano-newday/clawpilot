@@ -70,6 +70,22 @@ pnpm test:watch
 pnpm lint
 ```
 
+## Browser CLI Commands
+
+```bash
+# Search the web using DuckDuckGo
+node packages/clawpilot-browser/dist/index.js web search "your query" [--max-results 5]
+
+# Fetch and extract content from a URL
+node packages/clawpilot-browser/dist/index.js web fetch "https://example.com" [--readability]
+
+# Validate whether the saved Office session still works
+node packages/clawpilot-browser/dist/index.js auth status --validate
+
+# Run the end-to-end manual browser QA script
+packages/clawpilot-browser/scripts/manual-test-web.sh
+```
+
 ## Architecture
 
 See [clawpilot-project.md](./docs/clawpilot-project.md) for the full architecture document.
