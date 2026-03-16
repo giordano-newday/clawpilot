@@ -13,6 +13,7 @@
 ### Task 1: Monorepo Scaffold
 
 **Files:**
+
 - Create: `package.json` (workspace root)
 - Create: `pnpm-workspace.yaml`
 - Create: `tsconfig.base.json`
@@ -42,7 +43,7 @@
 
 ```yaml
 packages:
-  - "packages/*"
+  - 'packages/*'
 ```
 
 **Step 3: Create `tsconfig.base.json`**
@@ -142,12 +143,12 @@ auto-install-peers=true
 **Step 9: Create `packages/clawpilot-browser/vitest.config.ts`**
 
 ```typescript
-import { defineConfig } from "vitest/config";
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
     globals: true,
-    environment: "node",
+    environment: 'node',
   },
 });
 ```
@@ -171,6 +172,7 @@ git commit -m "feat: scaffold pnpm monorepo with browser package"
 ### Task 2: JSON Output Helpers
 
 **Files:**
+
 - Create: `packages/clawpilot-browser/src/utils/output.ts`
 - Test: `packages/clawpilot-browser/src/utils/__tests__/output.test.ts`
 
@@ -178,35 +180,35 @@ git commit -m "feat: scaffold pnpm monorepo with browser package"
 
 ```typescript
 // packages/clawpilot-browser/src/utils/__tests__/output.test.ts
-import { describe, it, expect } from "vitest";
-import { success, error, formatOutput } from "../output.js";
+import { describe, it, expect } from 'vitest';
+import { success, error, formatOutput } from '../output.js';
 
-describe("output helpers", () => {
-  describe("success", () => {
-    it("creates a success response with data", () => {
-      const result = success({ greeting: "hello" });
-      expect(result).toEqual({ ok: true, data: { greeting: "hello" } });
+describe('output helpers', () => {
+  describe('success', () => {
+    it('creates a success response with data', () => {
+      const result = success({ greeting: 'hello' });
+      expect(result).toEqual({ ok: true, data: { greeting: 'hello' } });
     });
 
-    it("creates a success response without data", () => {
+    it('creates a success response without data', () => {
       const result = success();
       expect(result).toEqual({ ok: true });
     });
   });
 
-  describe("error", () => {
-    it("creates an error response with type and message", () => {
-      const result = error("not_installed", "Playwright is not installed");
+  describe('error', () => {
+    it('creates an error response with type and message', () => {
+      const result = error('not_installed', 'Playwright is not installed');
       expect(result).toEqual({
         ok: false,
-        error: "not_installed",
-        message: "Playwright is not installed",
+        error: 'not_installed',
+        message: 'Playwright is not installed',
       });
     });
   });
 
-  describe("formatOutput", () => {
-    it("serialises response to pretty JSON", () => {
+  describe('formatOutput', () => {
+    it('serialises response to pretty JSON', () => {
       const result = formatOutput(success({ a: 1 }));
       expect(result).toBe(JSON.stringify({ ok: true, data: { a: 1 } }, null, 2));
     });
@@ -274,6 +276,7 @@ git commit -m "feat(browser): add JSON output helpers with tests"
 ### Task 3: CLI Entry Point with Commander
 
 **Files:**
+
 - Create: `packages/clawpilot-browser/src/index.ts`
 - Create: `packages/clawpilot-browser/src/commands/health.ts` (stub)
 - Create: `packages/clawpilot-browser/src/commands/auth.ts` (stub)
@@ -305,33 +308,31 @@ program.parse();
 
 ```typescript
 // packages/clawpilot-browser/src/commands/health.ts
-import { Command } from "commander";
-import { output, success } from "../utils/output.js";
+import { Command } from 'commander';
+import { output, success } from '../utils/output.js';
 
 export function registerHealthCommands(program: Command): void {
-  const health = program
-    .command("health")
-    .description("Check browser availability and health");
+  const health = program.command('health').description('Check browser availability and health');
 
   health
-    .command("check-install")
-    .description("Verify Playwright and browser binaries are installed")
+    .command('check-install')
+    .description('Verify Playwright and browser binaries are installed')
     .action(async () => {
-      output(success({ status: "stub" }));
+      output(success({ status: 'stub' }));
     });
 
   health
-    .command("check-session")
-    .description("Verify browser auth session is valid")
+    .command('check-session')
+    .description('Verify browser auth session is valid')
     .action(async () => {
-      output(success({ status: "stub" }));
+      output(success({ status: 'stub' }));
     });
 
   health
-    .command("full")
-    .description("Full health report")
+    .command('full')
+    .description('Full health report')
     .action(async () => {
-      output(success({ status: "stub" }));
+      output(success({ status: 'stub' }));
     });
 }
 ```
@@ -340,33 +341,31 @@ export function registerHealthCommands(program: Command): void {
 
 ```typescript
 // packages/clawpilot-browser/src/commands/auth.ts
-import { Command } from "commander";
-import { output, success } from "../utils/output.js";
+import { Command } from 'commander';
+import { output, success } from '../utils/output.js';
 
 export function registerAuthCommands(program: Command): void {
-  const auth = program
-    .command("auth")
-    .description("Manage browser authentication");
+  const auth = program.command('auth').description('Manage browser authentication');
 
   auth
-    .command("login")
-    .description("Launch browser for manual Office 365 login")
+    .command('login')
+    .description('Launch browser for manual Office 365 login')
     .action(async () => {
-      output(success({ status: "stub" }));
+      output(success({ status: 'stub' }));
     });
 
   auth
-    .command("status")
-    .description("Check if browser session is valid")
+    .command('status')
+    .description('Check if browser session is valid')
     .action(async () => {
-      output(success({ status: "stub" }));
+      output(success({ status: 'stub' }));
     });
 
   auth
-    .command("clear")
-    .description("Clear saved browser session")
+    .command('clear')
+    .description('Clear saved browser session')
     .action(async () => {
-      output(success({ status: "stub" }));
+      output(success({ status: 'stub' }));
     });
 }
 ```
@@ -387,6 +386,7 @@ git commit -m "feat(browser): add CLI entry with health and auth command stubs"
 ```
 
 **Manual test:**
+
 - `node dist/index.js --help` — shows full help
 - `node dist/index.js health --help` — shows health subcommands
 - `node dist/index.js auth --help` — shows auth subcommands
@@ -397,6 +397,7 @@ git commit -m "feat(browser): add CLI entry with health and auth command stubs"
 ### Task 4: Health Check — `check-install`
 
 **Files:**
+
 - Create: `packages/clawpilot-browser/src/health.ts`
 - Test: `packages/clawpilot-browser/src/__tests__/health.test.ts`
 - Modify: `packages/clawpilot-browser/src/commands/health.ts`
@@ -405,17 +406,17 @@ git commit -m "feat(browser): add CLI entry with health and auth command stubs"
 
 ```typescript
 // packages/clawpilot-browser/src/__tests__/health.test.ts
-import { describe, it, expect, vi } from "vitest";
-import { checkInstall } from "../health.js";
+import { describe, it, expect, vi } from 'vitest';
+import { checkInstall } from '../health.js';
 
-describe("checkInstall", () => {
-  it("returns install info when playwright is available", async () => {
+describe('checkInstall', () => {
+  it('returns install info when playwright is available', async () => {
     const result = await checkInstall();
     // We expect this to work since playwright is in our dependencies
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.data).toHaveProperty("playwright_installed");
-      expect(result.data).toHaveProperty("browser_binary");
+      expect(result.data).toHaveProperty('playwright_installed');
+      expect(result.data).toHaveProperty('browser_binary');
     }
   });
 });
@@ -430,10 +431,10 @@ Expected: FAIL — cannot find module `../health.js`.
 
 ```typescript
 // packages/clawpilot-browser/src/health.ts
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
-import { existsSync } from "node:fs";
-import { success, error, type CLIResponse } from "./utils/output.js";
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+import { existsSync } from 'node:fs';
+import { success, error, type CLIResponse } from './utils/output.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -464,12 +465,12 @@ export async function checkInstall(): Promise<CLIResponse<InstallCheckData>> {
   // Check if playwright can be imported
   let playwrightInstalled = false;
   try {
-    await import("playwright");
+    await import('playwright');
     playwrightInstalled = true;
   } catch {
     return error(
-      "not_installed",
-      "Playwright is not installed. Run: npm install playwright && npx playwright install chromium"
+      'not_installed',
+      'Playwright is not installed. Run: npm install playwright && npx playwright install chromium',
     );
   }
 
@@ -478,25 +479,23 @@ export async function checkInstall(): Promise<CLIResponse<InstallCheckData>> {
   let browserVersion: string | null = null;
 
   try {
-    const { stdout } = await execFileAsync("npx", [
-      "playwright",
-      "install",
-      "--dry-run",
-      "chromium",
+    const { stdout } = await execFileAsync('npx', [
+      'playwright',
+      'install',
+      '--dry-run',
+      'chromium',
     ]);
     // If dry-run shows nothing to install, chromium is already installed
     // Try to get the actual path
-    const playwright = await import("playwright");
+    const playwright = await import('playwright');
     browserBinary = playwright.chromium.executablePath();
     if (browserBinary && existsSync(browserBinary)) {
       // Get version via the binary
       try {
-        const { stdout: versionOutput } = await execFileAsync(browserBinary, [
-          "--version",
-        ]);
+        const { stdout: versionOutput } = await execFileAsync(browserBinary, ['--version']);
         browserVersion = versionOutput.trim();
       } catch {
-        browserVersion = "unknown";
+        browserVersion = 'unknown';
       }
     } else {
       browserBinary = null;
@@ -508,8 +507,8 @@ export async function checkInstall(): Promise<CLIResponse<InstallCheckData>> {
 
   if (!browserBinary) {
     return error(
-      "browser_not_installed",
-      "Playwright is installed but Chromium browser binary is missing. Run: npx playwright install chromium"
+      'browser_not_installed',
+      'Playwright is installed but Chromium browser binary is missing. Run: npx playwright install chromium',
     );
   }
 
@@ -527,34 +526,32 @@ Replace the `check-install` action in `packages/clawpilot-browser/src/commands/h
 
 ```typescript
 // packages/clawpilot-browser/src/commands/health.ts
-import { Command } from "commander";
-import { output, success } from "../utils/output.js";
-import { checkInstall } from "../health.js";
+import { Command } from 'commander';
+import { output, success } from '../utils/output.js';
+import { checkInstall } from '../health.js';
 
 export function registerHealthCommands(program: Command): void {
-  const health = program
-    .command("health")
-    .description("Check browser availability and health");
+  const health = program.command('health').description('Check browser availability and health');
 
   health
-    .command("check-install")
-    .description("Verify Playwright and browser binaries are installed")
+    .command('check-install')
+    .description('Verify Playwright and browser binaries are installed')
     .action(async () => {
       output(await checkInstall());
     });
 
   health
-    .command("check-session")
-    .description("Verify browser auth session is valid")
+    .command('check-session')
+    .description('Verify browser auth session is valid')
     .action(async () => {
-      output(success({ status: "stub" }));
+      output(success({ status: 'stub' }));
     });
 
   health
-    .command("full")
-    .description("Full health report")
+    .command('full')
+    .description('Full health report')
     .action(async () => {
-      output(success({ status: "stub" }));
+      output(success({ status: 'stub' }));
     });
 }
 ```
@@ -577,6 +574,7 @@ git commit -m "feat(browser): implement health check-install"
 ```
 
 **Manual test:**
+
 - `node dist/index.js health check-install` — should return full install info
 - Uninstall chromium temporarily: `npx playwright uninstall chromium` then run again — should return `browser_not_installed` error
 - Reinstall: `npx playwright install chromium`
@@ -586,6 +584,7 @@ git commit -m "feat(browser): implement health check-install"
 ### Task 5: Health Check — `check-session`
 
 **Files:**
+
 - Modify: `packages/clawpilot-browser/src/health.ts`
 - Test: `packages/clawpilot-browser/src/__tests__/health.test.ts` (add tests)
 - Modify: `packages/clawpilot-browser/src/commands/health.ts`
@@ -595,11 +594,11 @@ git commit -m "feat(browser): implement health check-install"
 Add to `packages/clawpilot-browser/src/__tests__/health.test.ts`:
 
 ```typescript
-describe("checkSession", () => {
-  it("returns session_exists:false when state dir does not exist", async () => {
+describe('checkSession', () => {
+  it('returns session_exists:false when state dir does not exist', async () => {
     // Use a nonexistent dir via env override
-    process.env.CLAWPILOT_BROWSER_STATE_DIR = "/tmp/clawpilot-test-nonexistent";
-    const { checkSession } = await import("../health.js");
+    process.env.CLAWPILOT_BROWSER_STATE_DIR = '/tmp/clawpilot-test-nonexistent';
+    const { checkSession } = await import('../health.js');
     const result = await checkSession();
     expect(result.ok).toBe(true);
     if (result.ok && result.data) {
@@ -621,7 +620,7 @@ Expected: FAIL — `checkSession` not exported.
 Add to `packages/clawpilot-browser/src/health.ts`:
 
 ```typescript
-import { readdirSync, statSync } from "node:fs";
+import { readdirSync, statSync } from 'node:fs';
 
 export async function checkSession(): Promise<CLIResponse<SessionCheckData>> {
   const stateDir = getStateDir();
@@ -665,12 +664,12 @@ export async function checkSession(): Promise<CLIResponse<SessionCheckData>> {
 Update `check-session` action in `commands/health.ts`:
 
 ```typescript
-import { checkInstall, checkSession } from "../health.js";
+import { checkInstall, checkSession } from '../health.js';
 
 // In the check-session command:
 health
-  .command("check-session")
-  .description("Verify browser auth session is valid")
+  .command('check-session')
+  .description('Verify browser auth session is valid')
   .action(async () => {
     output(await checkSession());
   });
@@ -689,6 +688,7 @@ git commit -m "feat(browser): implement health check-session"
 ```
 
 **Manual test:**
+
 - `node dist/index.js health check-session` — should return `session_exists: false` (no auth done yet)
 - After running `auth login` (Task 7), re-run — should return `session_exists: true`
 
@@ -697,6 +697,7 @@ git commit -m "feat(browser): implement health check-session"
 ### Task 6: Health Check — `full`
 
 **Files:**
+
 - Modify: `packages/clawpilot-browser/src/health.ts`
 - Modify: `packages/clawpilot-browser/src/commands/health.ts`
 
@@ -708,16 +709,14 @@ Add to `packages/clawpilot-browser/src/health.ts`:
 export async function fullHealthCheck(): Promise<CLIResponse<FullHealthData>> {
   const installResult = await checkInstall();
   if (!installResult.ok) {
-    return error(
-      installResult.error,
-      installResult.message
-    );
+    return error(installResult.error, installResult.message);
   }
 
   const sessionResult = await checkSession();
-  const sessionData: SessionCheckData = sessionResult.ok && sessionResult.data
-    ? sessionResult.data
-    : { session_exists: false, session_valid: false, session_age_hours: null };
+  const sessionData: SessionCheckData =
+    sessionResult.ok && sessionResult.data
+      ? sessionResult.data
+      : { session_exists: false, session_valid: false, session_age_hours: null };
 
   return success<FullHealthData>({
     ...installResult.data!,
@@ -733,11 +732,11 @@ export async function fullHealthCheck(): Promise<CLIResponse<FullHealthData>> {
 Update `full` action in `commands/health.ts`:
 
 ```typescript
-import { checkInstall, checkSession, fullHealthCheck } from "../health.js";
+import { checkInstall, checkSession, fullHealthCheck } from '../health.js';
 
 health
-  .command("full")
-  .description("Full health report")
+  .command('full')
+  .description('Full health report')
   .action(async () => {
     output(await fullHealthCheck());
   });
@@ -760,6 +759,7 @@ git commit -m "feat(browser): implement full health check"
 ### Task 7: Browser Session Manager
 
 **Files:**
+
 - Create: `packages/clawpilot-browser/src/browser.ts`
 - Test: `packages/clawpilot-browser/src/__tests__/browser.test.ts`
 
@@ -767,30 +767,30 @@ git commit -m "feat(browser): implement full health check"
 
 ```typescript
 // packages/clawpilot-browser/src/__tests__/browser.test.ts
-import { describe, it, expect, afterEach } from "vitest";
-import { mkdtempSync, rmSync } from "node:fs";
-import { join } from "node:path";
-import { tmpdir } from "node:os";
-import { BrowserManager } from "../browser.js";
+import { describe, it, expect, afterEach } from 'vitest';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
+import { BrowserManager } from '../browser.js';
 
-describe("BrowserManager", () => {
+describe('BrowserManager', () => {
   let tempDir: string;
 
   afterEach(() => {
     if (tempDir) rmSync(tempDir, { recursive: true, force: true });
   });
 
-  it("creates state directory if it does not exist", () => {
-    tempDir = join(tmpdir(), "clawpilot-test-");
+  it('creates state directory if it does not exist', () => {
+    tempDir = join(tmpdir(), 'clawpilot-test-');
     tempDir = mkdtempSync(tempDir);
-    const stateDir = join(tempDir, "browser-state");
+    const stateDir = join(tempDir, 'browser-state');
     const manager = new BrowserManager(stateDir);
     expect(manager.stateDir).toBe(stateDir);
   });
 
-  it("reports hasSession=false for empty state dir", () => {
-    tempDir = mkdtempSync(join(tmpdir(), "clawpilot-test-"));
-    const stateDir = join(tempDir, "browser-state");
+  it('reports hasSession=false for empty state dir', () => {
+    tempDir = mkdtempSync(join(tmpdir(), 'clawpilot-test-'));
+    const stateDir = join(tempDir, 'browser-state');
     const manager = new BrowserManager(stateDir);
     expect(manager.hasSession()).toBe(false);
   });
@@ -806,8 +806,8 @@ Expected: FAIL — cannot find module.
 
 ```typescript
 // packages/clawpilot-browser/src/browser.ts
-import { existsSync, mkdirSync, readdirSync, rmSync } from "node:fs";
-import type { BrowserContext } from "playwright";
+import { existsSync, mkdirSync, readdirSync, rmSync } from 'node:fs';
+import type { BrowserContext } from 'playwright';
 
 const DEFAULT_STATE_DIR = `${process.env.HOME}/.clawpilot/state/browser-state`;
 const LOGIN_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
@@ -820,11 +820,7 @@ const TEAMS_AUTHENTICATED_PATTERNS = [
 ];
 
 /** URL patterns that indicate a login page (session expired) */
-const LOGIN_PAGE_PATTERNS = [
-  /login\.microsoftonline\.com/,
-  /login\.live\.com/,
-  /adfs\./,
-];
+const LOGIN_PAGE_PATTERNS = [/login\.microsoftonline\.com/, /login\.live\.com/, /adfs\./];
 
 export class BrowserManager {
   readonly stateDir: string;
@@ -852,28 +848,27 @@ export class BrowserManager {
     // Ensure state dir exists
     mkdirSync(this.stateDir, { recursive: true, mode: 0o700 });
 
-    const { chromium } = await import("playwright");
+    const { chromium } = await import('playwright');
 
     const context = await chromium.launchPersistentContext(this.stateDir, {
       headless: false,
-      channel: "chromium",
+      channel: 'chromium',
       viewport: { width: 1280, height: 800 },
     });
 
-    const page = context.pages()[0] || await context.newPage();
-    await page.goto("https://teams.microsoft.com");
+    const page = context.pages()[0] || (await context.newPage());
+    await page.goto('https://teams.microsoft.com');
 
     // Wait for authentication — either success or timeout
     try {
-      await page.waitForURL(
-        (url) => TEAMS_AUTHENTICATED_PATTERNS.some((p) => p.test(url.href)),
-        { timeout: LOGIN_TIMEOUT_MS }
-      );
+      await page.waitForURL((url) => TEAMS_AUTHENTICATED_PATTERNS.some((p) => p.test(url.href)), {
+        timeout: LOGIN_TIMEOUT_MS,
+      });
       await context.close();
-      return { success: true, message: "Logged in successfully. Session saved." };
+      return { success: true, message: 'Logged in successfully. Session saved.' };
     } catch {
       await context.close();
-      return { success: false, message: "Login timed out after 5 minutes." };
+      return { success: false, message: 'Login timed out after 5 minutes.' };
     }
   }
 
@@ -887,7 +882,7 @@ export class BrowserManager {
       return { valid: false, teamsAccessible: false, outlookAccessible: false };
     }
 
-    const { chromium } = await import("playwright");
+    const { chromium } = await import('playwright');
 
     let context: BrowserContext | null = null;
     try {
@@ -895,12 +890,12 @@ export class BrowserManager {
         headless: true,
       });
 
-      const page = context.pages()[0] || await context.newPage();
+      const page = context.pages()[0] || (await context.newPage());
 
       // Check Teams
       let teamsOk = false;
       try {
-        await page.goto("https://teams.microsoft.com", { timeout: 15000 });
+        await page.goto('https://teams.microsoft.com', { timeout: 15000 });
         const url = page.url();
         teamsOk = !LOGIN_PAGE_PATTERNS.some((p) => p.test(url));
       } catch {
@@ -910,7 +905,7 @@ export class BrowserManager {
       // Check Outlook
       let outlookOk = false;
       try {
-        await page.goto("https://outlook.office365.com", { timeout: 15000 });
+        await page.goto('https://outlook.office365.com', { timeout: 15000 });
         const url = page.url();
         outlookOk = !LOGIN_PAGE_PATTERNS.some((p) => p.test(url));
       } catch {
@@ -949,37 +944,36 @@ git commit -m "feat(browser): add BrowserManager with session lifecycle"
 ### Task 8: Auth Commands — Wire to BrowserManager
 
 **Files:**
+
 - Modify: `packages/clawpilot-browser/src/commands/auth.ts`
 
 **Step 1: Implement all auth commands**
 
 ```typescript
 // packages/clawpilot-browser/src/commands/auth.ts
-import { Command } from "commander";
-import { output, success, error } from "../utils/output.js";
-import { BrowserManager } from "../browser.js";
+import { Command } from 'commander';
+import { output, success, error } from '../utils/output.js';
+import { BrowserManager } from '../browser.js';
 
 export function registerAuthCommands(program: Command): void {
-  const auth = program
-    .command("auth")
-    .description("Manage browser authentication");
+  const auth = program.command('auth').description('Manage browser authentication');
 
   auth
-    .command("login")
-    .description("Launch browser for manual Office 365 login")
+    .command('login')
+    .description('Launch browser for manual Office 365 login')
     .action(async () => {
       const manager = new BrowserManager();
       const result = await manager.login();
       if (result.success) {
         output(success({ message: result.message }));
       } else {
-        output(error("login_timeout", result.message));
+        output(error('login_timeout', result.message));
       }
     });
 
   auth
-    .command("status")
-    .description("Check if browser session is valid")
+    .command('status')
+    .description('Check if browser session is valid')
     .action(async () => {
       const manager = new BrowserManager();
       if (!manager.hasSession()) {
@@ -987,8 +981,8 @@ export function registerAuthCommands(program: Command): void {
           success({
             authenticated: false,
             session_age_hours: null,
-            message: "No session found. Run: clawpilot-browser auth login",
-          })
+            message: 'No session found. Run: clawpilot-browser auth login',
+          }),
         );
         return;
       }
@@ -998,17 +992,17 @@ export function registerAuthCommands(program: Command): void {
           authenticated: true,
           session_age_hours: null, // Would need stat check
           message: "Session found. Use 'health full' for deep validation.",
-        })
+        }),
       );
     });
 
   auth
-    .command("clear")
-    .description("Clear saved browser session")
+    .command('clear')
+    .description('Clear saved browser session')
     .action(async () => {
       const manager = new BrowserManager();
       manager.clearSession();
-      output(success({ message: "Browser session cleared." }));
+      output(success({ message: 'Browser session cleared.' }));
     });
 }
 ```
@@ -1057,11 +1051,12 @@ node dist/index.js auth status
 ### Task 9: README with Mascotte
 
 **Files:**
+
 - Create: `README.md` (replace any existing)
 
 **Step 1: Write README**
 
-```markdown
+````markdown
 # 🦀 ClawPilot
 
 <p align="center">
@@ -1078,10 +1073,10 @@ ClawPilot is a self-improving personal AI agent. It runs as a daemon on your lap
 
 ## Packages
 
-| Package | Description | Status |
-|---------|-------------|--------|
+| Package              | Description                  | Status         |
+| -------------------- | ---------------------------- | -------------- |
 | `@clawpilot/browser` | Playwright-based browser CLI | 🚧 In Progress |
-| `@clawpilot/core` | Agent daemon | 📋 Planned |
+| `@clawpilot/core`    | Agent daemon                 | 📋 Planned     |
 
 ## Quick Start
 
@@ -1105,6 +1100,7 @@ node dist/index.js auth status
 # Full health check
 node dist/index.js health full
 ```
+````
 
 ## Development
 
@@ -1127,25 +1123,28 @@ See [prjpilot-project.md](./prjpilot-project.md) for the full architecture docum
 ## License
 
 MIT
-```
+
+````
 
 **Step 2: Commit**
 
 ```bash
 git add -A
 git commit -m "docs: add README with mascotte and quick start guide"
-```
+````
 
 ---
 
 ### Task 10: Final Integration Test & Polish
 
 **Files:**
+
 - Modify: various (minor fixes found during integration)
 
 **Step 1: Full build from clean state**
 
 Run:
+
 ```bash
 cd /path/to/clawpilot
 rm -rf node_modules packages/*/node_modules packages/*/dist

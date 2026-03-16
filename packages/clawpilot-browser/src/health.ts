@@ -1,8 +1,8 @@
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
-import { existsSync, readdirSync, statSync } from "node:fs";
-import { success, error, type CLIResponse, type ErrorResponse } from "./utils/output.js";
-import { DEFAULT_STATE_DIR } from "./utils/paths.js";
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+import { existsSync, readdirSync, statSync } from 'node:fs';
+import { success, error, type CLIResponse, type ErrorResponse } from './utils/output.js';
+import { DEFAULT_STATE_DIR } from './utils/paths.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -31,12 +31,12 @@ export async function checkInstall(): Promise<CLIResponse<InstallCheckData>> {
   // Check if playwright can be imported
   let playwrightInstalled = false;
   try {
-    await import("playwright");
+    await import('playwright');
     playwrightInstalled = true;
   } catch {
     return error(
-      "not_installed",
-      "Playwright is not installed. Run: npm install playwright && npx playwright install chromium",
+      'not_installed',
+      'Playwright is not installed. Run: npm install playwright && npx playwright install chromium',
     );
   }
 
@@ -45,16 +45,14 @@ export async function checkInstall(): Promise<CLIResponse<InstallCheckData>> {
   let browserVersion: string | null = null;
 
   try {
-    const playwright = await import("playwright");
+    const playwright = await import('playwright');
     browserBinary = playwright.chromium.executablePath();
     if (browserBinary && existsSync(browserBinary)) {
       try {
-        const { stdout: versionOutput } = await execFileAsync(browserBinary, [
-          "--version",
-        ]);
+        const { stdout: versionOutput } = await execFileAsync(browserBinary, ['--version']);
         browserVersion = versionOutput.trim();
       } catch {
-        browserVersion = "unknown";
+        browserVersion = 'unknown';
       }
     } else {
       browserBinary = null;
@@ -65,8 +63,8 @@ export async function checkInstall(): Promise<CLIResponse<InstallCheckData>> {
 
   if (!browserBinary) {
     return error(
-      "browser_not_installed",
-      "Playwright is installed but Chromium browser binary is missing. Run: npx playwright install chromium",
+      'browser_not_installed',
+      'Playwright is installed but Chromium browser binary is missing. Run: npx playwright install chromium',
     );
   }
 
@@ -112,10 +110,7 @@ export async function checkSession(stateDir?: string): Promise<CLIResponse<Sessi
 export async function fullHealthCheck(): Promise<CLIResponse<FullHealthData>> {
   const installResult = await checkInstall();
   if (!installResult.ok) {
-    return error(
-      (installResult as ErrorResponse).error,
-      (installResult as ErrorResponse).message,
-    );
+    return error((installResult as ErrorResponse).error, (installResult as ErrorResponse).message);
   }
 
   const sessionResult = await checkSession();

@@ -234,12 +234,12 @@ Checks the availability of browser tools on startup and periodically:
 
 Health states:
 
-| State | Meaning | Agent Behaviour |
-|-------|---------|-----------------|
-| `healthy` | Playwright installed, session valid | All tools available |
-| `no_session` | Playwright installed, no auth session | Browser tools unavailable, agent suggests `clawpilot auth login` |
-| `session_expired` | Playwright installed, session expired | Browser tools unavailable, agent suggests re-auth |
-| `not_installed` | Playwright not installed | Browser tools unavailable, agent suggests installation |
+| State             | Meaning                               | Agent Behaviour                                                  |
+| ----------------- | ------------------------------------- | ---------------------------------------------------------------- |
+| `healthy`         | Playwright installed, session valid   | All tools available                                              |
+| `no_session`      | Playwright installed, no auth session | Browser tools unavailable, agent suggests `clawpilot auth login` |
+| `session_expired` | Playwright installed, session expired | Browser tools unavailable, agent suggests re-auth                |
+| `not_installed`   | Playwright not installed              | Browser tools unavailable, agent suggests installation           |
 
 The agent is always informed of the current health state via the system prompt, so it can communicate clearly to the user: "I can't check Teams right now because the browser session has expired. Run `clawpilot auth login` to fix this."
 
@@ -354,14 +354,14 @@ clawpilot-browser web fetch "https://..." [--readability]
 
 The search commands are first-class features, not afterthoughts. They allow the agent to find specific information across tools:
 
-| Command | What it does |
-|---------|-------------|
-| `teams search --channel "X" --query "Y"` | Searches a Teams channel for messages matching a query, using Teams' built-in search |
-| `teams search --chat "Person" --query "Y"` | Searches a specific chat for messages matching a query |
-| `teams messages --channel "X" --since "Z"` | Gets recent messages from a channel (chronological, no keyword filter) |
-| `outlook search --query "Y"` | Searches Outlook mail using Outlook's search functionality |
-| `outlook mail --from "X"` | Filters mail by sender |
-| `outlook calendar --date/--range` | Queries calendar for a specific date or range |
+| Command                                    | What it does                                                                         |
+| ------------------------------------------ | ------------------------------------------------------------------------------------ |
+| `teams search --channel "X" --query "Y"`   | Searches a Teams channel for messages matching a query, using Teams' built-in search |
+| `teams search --chat "Person" --query "Y"` | Searches a specific chat for messages matching a query                               |
+| `teams messages --channel "X" --since "Z"` | Gets recent messages from a channel (chronological, no keyword filter)               |
+| `outlook search --query "Y"`               | Searches Outlook mail using Outlook's search functionality                           |
+| `outlook mail --from "X"`                  | Filters mail by sender                                                               |
+| `outlook calendar --date/--range`          | Queries calendar for a specific date or range                                        |
 
 The search commands use the native search functionality built into Teams and Outlook web apps (via Playwright interaction with their search bars), rather than scraping all content and filtering locally. This is more efficient and leverages Microsoft's own search indexing.
 
@@ -393,15 +393,18 @@ $ clawpilot-browser health full
 ```
 
 The `check-install` command verifies:
+
 1. Playwright npm package is installed
 2. Browser binaries are downloaded (`npx playwright install chromium`)
 3. Required system dependencies are present
 
 The `check-session` command verifies:
+
 1. A browser state directory exists at `~/.clawpilot/state/browser-state/`
 2. Quick navigation to Teams/Outlook — does it land on the app or a login page?
 
 If installation is missing, ClawPilot provides clear instructions:
+
 ```
 Playwright is not installed. To set up browser tools:
   1. cd packages/clawpilot-browser && bun install
@@ -461,6 +464,7 @@ A native macOS SwiftUI app using `MenuBarExtra`. Tiny memory footprint, lives in
 **Presence Detection (Phase 2):**
 
 Listens for macOS distributed notifications:
+
 - `com.apple.screenIsLocked` → POST `/presence/away` (after debounce)
 - `com.apple.screenIsUnlocked` → POST `/presence/active`
 
@@ -480,41 +484,51 @@ Skills are markdown files that teach ClawPilot how to use external tools. They l
 # Skill: Jira
 
 ## Description
+
 Interact with Jira for ticket management, sprint tracking, and board views.
 
 ## Prerequisites
+
 - jira-cli installed: `brew install ankitpokhrel/jira-cli/jira`
 - Authenticated: `jira init`
 
 ## Commands
 
 ### List my in-progress tickets
+
 `jira issue list -a$(jira me) -s"In Progress"`
 
 ### View the sprint board
+
 `jira sprint list --board <board-id> --current`
 
 ### View a specific ticket
+
 `jira issue view <ticket-key>`
 Returns: summary, status, assignee, description, comments.
 
 ### Add a comment to a ticket
+
 `jira issue comment add <ticket-key> "<comment>"`
 
 ### Transition a ticket
+
 `jira issue move <ticket-key> "<status>"`
 Common statuses: "In Progress", "In Review", "Done"
 
 ### Search tickets
+
 `jira issue list -q"<JQL query>"`
 
 ## When to Use
+
 - Morning briefing: check in-progress and recently updated tickets
 - Standup prep: tickets moved since yesterday
 - Meeting prep: search for tickets mentioned in agenda
 - When user asks about tickets, sprints, or the board
 
 ## Notes
+
 - Board ID can be found with `jira board list`
 - Default project is configured in jira-cli init
 ```
@@ -527,26 +541,26 @@ skills:
   jira:
     enabled: true
     file: jira.md
-    added: "2026-03-15"
-    added_by: user            # or "agent"
+    added: '2026-03-15'
+    added_by: user # or "agent"
 
   confluence:
     enabled: true
     file: confluence.md
-    added: "2026-03-15"
+    added: '2026-03-15'
     added_by: user
 
   gh:
     enabled: true
     file: gh.md
-    added: "2026-03-15"
+    added: '2026-03-15'
     added_by: user
 
   npm:
     enabled: false
     file: npm.md
-    added: "2026-03-20"
-    added_by: agent           # Created by the agent
+    added: '2026-03-20'
+    added_by: agent # Created by the agent
 ```
 
 ### Skill Loading Strategy
@@ -579,6 +593,7 @@ The agent generates the skill file, writes it to `~/.agents/skills/docker.md`, r
 ### Skill Validation
 
 When the agent first uses a skill, it checks prerequisites:
+
 - Runs a simple command (e.g., `jira --version`) to verify the CLI is installed
 - If the command fails, the agent reports: "The Jira skill requires jira-cli. Install with: `brew install ankitpokhrel/jira-cli/jira`"
 - Validation results are cached so the check only happens once per session
@@ -587,11 +602,11 @@ When the agent first uses a skill, it checks prerequisites:
 
 ClawPilot ships with these skill files (copied to `~/.agents/skills/` on first run if not present):
 
-| Skill | CLI | Purpose |
-|-------|-----|---------|
-| `jira.md` | `jira-cli` | Ticket management, sprint boards, JQL search |
-| `confluence.md` | `confluence-cli` | Read/search/create Confluence pages |
-| `gh.md` | `gh` | GitHub PRs, issues, actions, repo management |
+| Skill           | CLI              | Purpose                                      |
+| --------------- | ---------------- | -------------------------------------------- |
+| `jira.md`       | `jira-cli`       | Ticket management, sprint boards, JQL search |
+| `confluence.md` | `confluence-cli` | Read/search/create Confluence pages          |
+| `gh.md`         | `gh`             | GitHub PRs, issues, actions, repo management |
 
 ---
 
@@ -605,11 +620,13 @@ The soul defines ClawPilot's personality, communication style, and behavioural b
 # Soul: Jarvis
 
 ## Identity
+
 You are ClawPilot, a personal work assistant. Your communication style
 is dry, concise, and occasionally witty. You address the user by name
 when it adds warmth, but don't overdo it. British-inflected tone.
 
 ## Communication
+
 - Lead with facts, then context
 - When delivering bad news, be direct but not blunt
 - Use short paragraphs, not walls of text
@@ -617,18 +634,21 @@ when it adds warmth, but don't overdo it. British-inflected tone.
 - No emoji unless the user uses them first
 
 ## Proactiveness
+
 - Flag meeting conflicts immediately
 - If you notice a pattern the user keeps asking about, offer to
   create a workflow for it
 - Suggest preparation notes before important meetings
 
 ## Summaries
+
 - Lead with what needs action
 - Group by priority, not chronology
 - Keep morning briefings to 5-7 bullet points max
 - Meeting prep: attendees, agenda, relevant context, suggested talking points
 
 ## Boundaries
+
 - Never send messages on behalf of the user without explicit confirmation
 - Never decline or accept meetings automatically
 - Never modify Jira tickets without confirmation
@@ -636,11 +656,13 @@ when it adds warmth, but don't overdo it. British-inflected tone.
 - When unsure, ask rather than assume
 
 ## Tool Awareness
+
 - When browser tools are unavailable, say so clearly and suggest fixes
 - Don't attempt browser operations if health check reports degraded state
 - Offer to use non-browser alternatives when possible
 
 ## Self-Improvement
+
 - After each interaction, consider: did I give the user what they needed?
 - If corrected, extract the learning and remember it
 - Periodically review learnings and update behaviour accordingly
@@ -680,22 +702,28 @@ Workflows are scheduled or triggered sequences that combine multiple skills and 
 # Workflow: Morning Briefing
 
 ## Description
+
 Daily morning briefing covering calendar, Jira, and Teams activity.
 
 ## Trigger
-cron: "0 8 * * 1-5"
+
+cron: "0 8 \* \* 1-5"
 
 ## Catch-Up Policy
+
 if_within: 2h
 
 ## Skills Required
+
 - outlook (calendar)
 - jira (my tickets)
 
 ## Tools Required
+
 - clawpilot-browser (teams search, outlook calendar, outlook mail)
 
 ## Output
+
 desktop_notification + log
 
 ## Instructions
@@ -738,25 +766,25 @@ workflows:
   morning-briefing:
     enabled: true
     file: morning-briefing.md
-    added: "2026-03-15"
+    added: '2026-03-15'
     added_by: user
 
   meeting-prep:
     enabled: true
     file: meeting-prep.md
-    added: "2026-03-15"
+    added: '2026-03-15'
     added_by: agent
 
   standup-prep:
     enabled: true
     file: standup-prep.md
-    added: "2026-03-16"
+    added: '2026-03-16'
     added_by: agent
 
   weekly-summary:
     enabled: false
     file: weekly-summary.md
-    added: "2026-03-20"
+    added: '2026-03-20'
     added_by: user
 ```
 
@@ -770,12 +798,12 @@ workflows:
 
 When ClawPilot restarts and finds missed workflow runs:
 
-| Policy | Behaviour |
-|--------|-----------|
-| `always` | Run the workflow regardless of how late |
-| `if_within: <duration>` | Run only if missed by less than the specified duration |
-| `skip` | Never run if missed, just log it |
-| `merge` | If multiple runs were missed, run once covering the full period |
+| Policy                  | Behaviour                                                       |
+| ----------------------- | --------------------------------------------------------------- |
+| `always`                | Run the workflow regardless of how late                         |
+| `if_within: <duration>` | Run only if missed by less than the specified duration          |
+| `skip`                  | Never run if missed, just log it                                |
+| `merge`                 | If multiple runs were missed, run once covering the full period |
 
 ### Workflow Output
 
@@ -812,21 +840,23 @@ Some workflows don't run on a fixed schedule but react to events:
 
 ```markdown
 ## Trigger
+
 event: before_meeting(10m)
 ```
 
 The scheduler evaluates event triggers by checking conditions periodically:
+
 - `before_meeting(Xm)`: Checks the calendar and fires X minutes before any meeting
 - `on_catch_up`: Fires during the catch-up phase after a restart
 
 ### Default Workflows
 
-| Workflow | Trigger | Purpose |
-|----------|---------|---------|
-| `morning-briefing.md` | `cron: "0 8 * * 1-5"` | Calendar + Jira + Teams + mail overview |
-| `meeting-prep.md` | `event: before_meeting(10m)` | Prep notes for upcoming meetings |
-| `standup-prep.md` | `cron: "30 9 * * 1-5"` | Git + Jira summary for standup |
-| `weekly-summary.md` | `cron: "0 17 * * 5"` | Week in review |
+| Workflow              | Trigger                      | Purpose                                 |
+| --------------------- | ---------------------------- | --------------------------------------- |
+| `morning-briefing.md` | `cron: "0 8 * * 1-5"`        | Calendar + Jira + Teams + mail overview |
+| `meeting-prep.md`     | `event: before_meeting(10m)` | Prep notes for upcoming meetings        |
+| `standup-prep.md`     | `cron: "30 9 * * 1-5"`       | Git + Jira summary for standup          |
+| `weekly-summary.md`   | `cron: "0 17 * * 5"`         | Week in review                          |
 
 ---
 
@@ -879,12 +909,12 @@ A secondary loop (every 60 seconds) evaluates event-based triggers:
 
 ### States
 
-| State | Cron | Notifications | Entry Condition |
-|-------|:---:|:---:|---|
-| **Active** | On | Desktop | Screen unlocked |
-| **Away** | On | Desktop | Screen locked > 2min |
-| **Sleeping** | Off | None | Outside work hours |
-| **DND** | On (queued) | Queued | Manual toggle |
+| State        |    Cron     | Notifications | Entry Condition      |
+| ------------ | :---------: | :-----------: | -------------------- |
+| **Active**   |     On      |    Desktop    | Screen unlocked      |
+| **Away**     |     On      |    Desktop    | Screen locked > 2min |
+| **Sleeping** |     Off     |     None      | Outside work hours   |
+| **DND**      | On (queued) |    Queued     | Manual toggle        |
 
 ### Configuration
 
@@ -892,9 +922,9 @@ A secondary loop (every 60 seconds) evaluates event-based triggers:
 # In ~/.clawpilot/config.yaml
 presence:
   work_hours:
-    start: "07:30"
-    end: "22:00"
-    timezone: "Europe/London"
+    start: '07:30'
+    end: '22:00'
+    timezone: 'Europe/London'
 
   away_debounce_minutes: 2
 ```
@@ -1042,14 +1072,15 @@ CREATE INDEX idx_learnings_active ON learnings(active);
 
 **Learning Categories:**
 
-| Category | Example |
-|----------|---------|
-| `preference` | "User prefers 24h time format" |
-| `correction` | "Standup is at 10:00, not 9:30" |
-| `pattern` | "User always asks about PRs on Monday mornings" |
-| `behaviour` | "User wants ticket numbers included in all Jira summaries" |
+| Category     | Example                                                    |
+| ------------ | ---------------------------------------------------------- |
+| `preference` | "User prefers 24h time format"                             |
+| `correction` | "Standup is at 10:00, not 9:30"                            |
+| `pattern`    | "User always asks about PRs on Monday mornings"            |
+| `behaviour`  | "User wants ticket numbers included in all Jira summaries" |
 
 **Confidence Scoring:**
+
 - New learnings start at 0.5
 - Reinforced (user behaviour confirms): +0.1 per confirmation, max 1.0
 - Contradicted (user corrects): -0.2 per contradiction
@@ -1126,25 +1157,25 @@ Source Key Format:
 # ~/.clawpilot/config.yaml
 
 # Agent identity
-name: "Giordano"                          # How the agent addresses you
-soul: "jarvis"                            # Active soul name
+name: 'Giordano' # How the agent addresses you
+soul: 'jarvis' # Active soul name
 
 # Browser
 browser:
-  mode: "on_demand"                       # 'on_demand' or 'persistent'
-  state_dir: "~/.clawpilot/state/browser-state"
+  mode: 'on_demand' # 'on_demand' or 'persistent'
+  state_dir: '~/.clawpilot/state/browser-state'
   timeout_seconds: 30
-  health_check_interval_minutes: 30       # How often to re-verify browser health
+  health_check_interval_minutes: 30 # How often to re-verify browser health
 
 # Channels to query (used by workflows for search queries)
 teams_channels:
-  - "Mobile Dev"
-  - "Engineering"
-  - "General"
+  - 'Mobile Dev'
+  - 'Engineering'
+  - 'General'
 
 # Copilot SDK
 copilot:
-  model: "claude-sonnet-4"               # Or any Copilot-supported model
+  model: 'claude-sonnet-4' # Or any Copilot-supported model
   # BYOK config if not using Copilot subscription:
   # byok:
   #   provider: "anthropic"
@@ -1152,19 +1183,20 @@ copilot:
 
 # Local HTTP API
 api:
-  host: "127.0.0.1"
+  host: '127.0.0.1'
   port: 7777
 
 # Logging
 log:
-  level: "info"                           # debug | info | warn | error
-  file: "~/.clawpilot/logs/clawpilot.log"
+  level: 'info' # debug | info | warn | error
+  file: '~/.clawpilot/logs/clawpilot.log'
 
 # Self-improvement
 learning:
   enabled: true
-  reflect_every_n_interactions: 10        # Reflect and extract learnings
-  max_active_learnings: 50                # Cap to avoid prompt bloat
+  reflect_every_n_interactions: 10 # Reflect and extract learnings
+  max_active_learnings: 50 # Cap to avoid prompt bloat
+
 
 # Presence (phase 2)
 # presence:
@@ -1180,27 +1212,33 @@ learning:
 ## 12. Security Considerations
 
 ### Browser State
+
 - `~/.clawpilot/state/browser-state/` contains authenticated sessions (cookies, localStorage). Directory permissions must be `700` (owner only).
 - The browser context includes your Office 365 session — treat it as a credential.
 
 ### SQLite Database
+
 - `~/.clawpilot/state/clawpilot.db` contains conversation history, which may include sensitive work data (meeting notes, ticket details, Teams messages). Directory permissions `700`.
 
 ### Local HTTP API
+
 - Bound to `127.0.0.1` only — not accessible from the network.
 - No authentication (it's localhost-only on your own machine).
 - If port 7777 conflicts, configurable in `config.yaml`.
 
 ### Copilot SDK
+
 - Uses your GitHub Copilot subscription authentication.
 - Conversations are sent to GitHub's servers for LLM processing.
 - BYOK mode available if you prefer to use your own API keys.
 
 ### Skills and Workflows
+
 - Skills and workflows created by the agent are markdown files — review them before enabling if security-sensitive.
 - The agent can execute bash commands via skills. The soul should define boundaries for what it can do autonomously vs. what requires confirmation.
 
 ### pm2 Daemon
+
 - Runs under your user account with your permissions.
 - Log files may contain sensitive data — same directory protections apply.
 
@@ -1212,64 +1250,64 @@ Complete list of tools available to the ClawPilot agent:
 
 ### Browser Tools (via `clawpilot-browser` CLI)
 
-| Tool | Command | Description |
-|------|---------|-------------|
-| `teams_search` | `clawpilot-browser teams search ...` | Search Teams channels or chats by keyword |
-| `teams_messages` | `clawpilot-browser teams messages ...` | Read recent messages from a channel or chat |
-| `teams_channels` | `clawpilot-browser teams channels` | List joined Teams channels |
-| `teams_send` | `clawpilot-browser teams send ...` | Send a message (e.g. to self-chat) |
-| `outlook_search` | `clawpilot-browser outlook search ...` | Search Outlook mail by keyword, sender, date |
-| `outlook_calendar` | `clawpilot-browser outlook calendar ...` | Get calendar events for a date/range |
-| `outlook_mail` | `clawpilot-browser outlook mail ...` | Read mail (unread, by sender, by date) |
-| `outlook_send` | `clawpilot-browser outlook send --to self ...` | Send email to self |
-| `web_search` | `clawpilot-browser web search ...` | Search DuckDuckGo |
-| `web_fetch` | `clawpilot-browser web fetch ...` | Fetch and extract page content |
-| `browser_health` | `clawpilot-browser health full` | Check browser availability and session |
+| Tool               | Command                                        | Description                                  |
+| ------------------ | ---------------------------------------------- | -------------------------------------------- |
+| `teams_search`     | `clawpilot-browser teams search ...`           | Search Teams channels or chats by keyword    |
+| `teams_messages`   | `clawpilot-browser teams messages ...`         | Read recent messages from a channel or chat  |
+| `teams_channels`   | `clawpilot-browser teams channels`             | List joined Teams channels                   |
+| `teams_send`       | `clawpilot-browser teams send ...`             | Send a message (e.g. to self-chat)           |
+| `outlook_search`   | `clawpilot-browser outlook search ...`         | Search Outlook mail by keyword, sender, date |
+| `outlook_calendar` | `clawpilot-browser outlook calendar ...`       | Get calendar events for a date/range         |
+| `outlook_mail`     | `clawpilot-browser outlook mail ...`           | Read mail (unread, by sender, by date)       |
+| `outlook_send`     | `clawpilot-browser outlook send --to self ...` | Send email to self                           |
+| `web_search`       | `clawpilot-browser web search ...`             | Search DuckDuckGo                            |
+| `web_fetch`        | `clawpilot-browser web fetch ...`              | Fetch and extract page content               |
+| `browser_health`   | `clawpilot-browser health full`                | Check browser availability and session       |
 
 ### System Tools (built-in, native)
 
-| Tool | Description |
-|------|-------------|
-| `read_file` | Read a local file |
-| `write_file` | Write/create a local file |
-| `run_command` | Execute a bash command (used by skills) |
+| Tool             | Description                               |
+| ---------------- | ----------------------------------------- |
+| `read_file`      | Read a local file                         |
+| `write_file`     | Write/create a local file                 |
+| `run_command`    | Execute a bash command (used by skills)   |
 | `desktop_notify` | Send a macOS/Windows desktop notification |
 
 ### Internal Tools (ClawPilot state)
 
-| Tool | Description |
-|------|-------------|
-| `search_history` | Search past conversations in SQLite |
-| `get_learnings` | Read current active learnings |
-| `save_learning` | Write a new learning |
+| Tool              | Description                                         |
+| ----------------- | --------------------------------------------------- |
+| `search_history`  | Search past conversations in SQLite                 |
+| `get_learnings`   | Read current active learnings                       |
+| `save_learning`   | Write a new learning                                |
 | `update_learning` | Modify an existing learning's content or confidence |
-| `get_schedule` | List cron jobs and their last run times |
-| `check_health` | Get current browser and tool health status |
+| `get_schedule`    | List cron jobs and their last run times             |
+| `check_health`    | Get current browser and tool health status          |
 
 ### Skill Management Tools
 
-| Tool | Description |
-|------|-------------|
-| `skill_list` | List all skills with enabled/disabled status |
-| `skill_read` | Read the full content of a skill file |
-| `skill_create` | Create a new skill file + register in manifest |
-| `skill_update` | Edit an existing skill file |
-| `skill_enable` | Enable a skill in the manifest |
-| `skill_disable` | Disable a skill in the manifest |
-| `skill_delete` | Remove a skill file and manifest entry |
+| Tool            | Description                                    |
+| --------------- | ---------------------------------------------- |
+| `skill_list`    | List all skills with enabled/disabled status   |
+| `skill_read`    | Read the full content of a skill file          |
+| `skill_create`  | Create a new skill file + register in manifest |
+| `skill_update`  | Edit an existing skill file                    |
+| `skill_enable`  | Enable a skill in the manifest                 |
+| `skill_disable` | Disable a skill in the manifest                |
+| `skill_delete`  | Remove a skill file and manifest entry         |
 
 ### Workflow Management Tools
 
-| Tool | Description |
-|------|-------------|
-| `workflow_list` | List all workflows with status and schedules |
-| `workflow_read` | Read full workflow content |
-| `workflow_create` | Create a new workflow file + register in manifest |
-| `workflow_update` | Edit an existing workflow |
-| `workflow_enable` | Enable a workflow in the manifest |
-| `workflow_disable` | Disable a workflow in the manifest |
-| `workflow_delete` | Remove a workflow file and manifest entry |
-| `workflow_run` | Manually trigger a workflow |
+| Tool               | Description                                       |
+| ------------------ | ------------------------------------------------- |
+| `workflow_list`    | List all workflows with status and schedules      |
+| `workflow_read`    | Read full workflow content                        |
+| `workflow_create`  | Create a new workflow file + register in manifest |
+| `workflow_update`  | Edit an existing workflow                         |
+| `workflow_enable`  | Enable a workflow in the manifest                 |
+| `workflow_disable` | Disable a workflow in the manifest                |
+| `workflow_delete`  | Remove a workflow file and manifest entry         |
+| `workflow_run`     | Manually trigger a workflow                       |
 
 ---
 
@@ -1280,11 +1318,13 @@ Complete list of tools available to the ClawPilot agent:
 **Goal:** ClawPilot runs as a daemon, you can talk to it via REPL and CLI, it can use skills and execute workflows, and it stores history. Browser tools are available with clear health reporting.
 
 #### Step 1: Project Scaffold
+
 - Bun workspace with `core` and `clawpilot-browser` packages
 - Configuration schema and loader
 - pm2 ecosystem config
 
 #### Step 2: clawpilot-browser — Health & Auth
+
 - Playwright browser manager with session persistence
 - **Health check system**: verify Playwright installed, browser binaries present, session valid
 - Auth flow (manual login in visible browser)
@@ -1292,23 +1332,27 @@ Complete list of tools available to the ClawPilot agent:
 - Clear error codes: `not_installed`, `session_expired`, `session_not_found`
 
 #### Step 3: clawpilot-browser — Teams
+
 - Teams: read messages from channels and chats
 - **Teams search**: search channels and chats by keyword with date filters
 - Teams: list channels, send messages
 
 #### Step 4: clawpilot-browser — Outlook & Web
+
 - Outlook: calendar queries (date, range)
 - **Outlook search**: search mail by keyword, sender, date
 - Outlook: read unread mail, send to self
 - Web: DuckDuckGo search, page fetch with Readability
 
 #### Step 5: Core Agent
+
 - Copilot SDK client wrapper
 - Soul loader (read markdown, inject into system prompt)
 - **Health-aware tool registration**: register browser tools only when healthy, inform agent of degraded tools
 - Basic REPL interface
 
 #### Step 6: Skill System
+
 - Skill discovery from `~/.agents/skills/`
 - Manifest management (enable/disable)
 - Skill loading into agent context (progressive, on-demand)
@@ -1316,6 +1360,7 @@ Complete list of tools available to the ClawPilot agent:
 - Ship default skills: jira, confluence, gh
 
 #### Step 7: Workflow System
+
 - Workflow file loading from `~/.agents/workflows/`
 - Manifest management
 - Agent tools for workflow CRUD
@@ -1323,12 +1368,14 @@ Complete list of tools available to the ClawPilot agent:
 - Ship default workflows: morning briefing, meeting prep, standup prep, weekly summary
 
 #### Step 8: Scheduler & Catch-Up
+
 - Cron scheduler
 - Catch-up logic on startup (with health-aware degradation)
 - Event-based triggers (before_meeting)
 - Watermark tracking in SQLite
 
 #### Step 9: Storage & Self-Improvement
+
 - SQLite database setup with all tables
 - Conversation history logging
 - Learnings extraction (periodic reflection)
@@ -1337,6 +1384,7 @@ Complete list of tools available to the ClawPilot agent:
 - **Browser health logging**
 
 #### Step 10: CLI Polish
+
 - All CLI commands (daemon, auth, health, skill, workflow, soul, send, status)
 - Non-interactive `clawpilot send` mode
 - Local HTTP API for external control
@@ -1344,29 +1392,34 @@ Complete list of tools available to the ClawPilot agent:
 ### Phase 2: Intelligence & Polish
 
 #### Step 11: Menubar App
+
 - macOS SwiftUI `MenuBarExtra` app
 - Status polling via HTTP API (including browser health)
 - Quick actions (restart, auth, logs)
 
 #### Step 12: Presence Engine
+
 - Screen lock detection in menubar app
 - Presence state machine (active/away/sleeping/DND)
 - State-driven notification behaviour
 - Debounce on transitions
 
 #### Step 13: Self-Improvement v2
+
 - Confidence scoring with reinforcement/contradiction
 - Automatic learning retirement
 - Agent-initiated soul updates (with confirmation)
 - Pattern detection across conversations
 
 #### Step 14: Robustness
+
 - Graceful degradation when browser session expires mid-workflow
 - Retry logic for transient failures
 - Auto-recovery: periodic session health checks, proactive re-auth reminders
 - Log rotation and cleanup
 
 #### Step 15: Cross-Platform
+
 - Windows tray app (Electron or native)
 - Windows screen lock detection
 - Cross-platform notification handling
@@ -1386,12 +1439,14 @@ Complete list of tools available to the ClawPilot agent:
 # Soul: Jarvis
 
 ## Identity
+
 You are ClawPilot, a personal work assistant running on Giordano's laptop.
 Your style is dry, concise, and occasionally witty — think British butler
 who also happens to be very good with technology. You call him by name
 when appropriate but don't overdo it.
 
 ## Communication
+
 - Lead with the answer, then supporting detail
 - Bad news first, good news second
 - Short paragraphs, bullet points for 3+ items
@@ -1399,17 +1454,20 @@ when appropriate but don't overdo it.
 - If you don't know something, say so plainly
 
 ## Proactiveness
+
 - Flag meeting conflicts and double-bookings immediately
 - Before important meetings: prepare notes unprompted (via workflow)
 - If you notice a repeated manual task, suggest creating a workflow
 
 ## Briefing Style
+
 - Morning: action-oriented, 5-7 items max, grouped by priority
 - Meeting prep: attendees with roles, agenda, relevant prior context,
   2-3 suggested talking points
 - Weekly: achievements, open items, upcoming deadlines
 
 ## Tool Awareness
+
 - If browser tools are unavailable, state it plainly:
   "I can't access Teams at the moment — the browser session needs
   re-authentication. Run `clawpilot auth login` to fix this."
@@ -1418,6 +1476,7 @@ when appropriate but don't overdo it.
 - If a skill CLI isn't installed, provide the exact install command.
 
 ## Boundaries
+
 - Never send any message on behalf of the user without showing a draft
   and getting explicit "send it" confirmation
 - Never accept, decline, or modify calendar events
@@ -1427,6 +1486,7 @@ when appropriate but don't overdo it.
 - File operations on the local machine require confirmation if destructive
 
 ## When Corrected
+
 - Acknowledge briefly, don't over-apologise
 - Extract the correction as a learning immediately
 - Apply it going forward
@@ -1438,25 +1498,31 @@ when appropriate but don't overdo it.
 # Workflow: Meeting Prep
 
 ## Description
+
 Automatically prepare notes before meetings. Checks attendees,
 agenda, relevant history, and recent context to provide useful
 preparation material.
 
 ## Trigger
+
 event: before_meeting(10m)
 
 ## Catch-Up Policy
+
 skip
 
 ## Skills Required
+
 - gh (if meeting is about code review)
 - jira (if meeting relates to sprint/tickets)
 - confluence (if meeting has linked documents)
 
 ## Tools Required
+
 - clawpilot-browser (outlook calendar, teams search)
 
 ## Output
+
 desktop_notification + log
 
 ## Instructions
@@ -1503,6 +1569,7 @@ When this workflow fires for an upcoming meeting:
 7. Send summary as desktop notification. Full detail to log.
 
 ## Notes
+
 - Skip meetings titled "Lunch", "Focus Time", "Block", or similar
 - For 1:1s, include recent interactions with that person
 - For standup/daily meetings, defer to the standup-prep workflow
@@ -1516,50 +1583,63 @@ When this workflow fires for an upcoming meeting:
 # Skill: GitHub
 
 ## Description
+
 Interact with GitHub repositories, pull requests, issues, and actions
 using the GitHub CLI.
 
 ## Prerequisites
+
 - gh CLI installed: `brew install gh`
 - Authenticated: `gh auth login`
 
 ## Commands
 
 ### List my open PRs
+
 `gh pr list --author @me --state open`
 
 ### View PR details
+
 `gh pr view <number>`
 Returns: title, status, reviewers, checks, diff stats.
 
 ### List PRs needing my review
+
 `gh pr list --search "review-requested:@me"`
 
 ### Check PR CI status
+
 `gh pr checks <number>`
 
 ### View recent commits
+
 `gh api repos/{owner}/{repo}/commits --jq '.[0:5] | .[] | "\(.sha[0:7]) \(.commit.message | split("\n")[0])"'`
 
 ### List open issues assigned to me
+
 `gh issue list --assignee @me --state open`
 
 ### View repo activity
+
 `gh api repos/{owner}/{repo}/activity --jq '.[0:10]'`
 
 ### Check Actions workflow runs
+
 `gh run list --limit 5`
 
 ### View a specific run
+
 `gh run view <run-id>`
 
 ## When to Use
+
 - Standup prep: recent commits and merged PRs
 - PR review workflow: PRs awaiting review
 - Morning briefing: any failed CI runs
 - When user asks about PRs, commits, issues, or CI
 
 ## Notes
+
 - Default repo is determined by current directory or can be specified with -R owner/repo
 - For cross-repo queries, use `gh api` with the appropriate endpoint
 - Rate limits apply — avoid rapid repeated calls

@@ -14,10 +14,10 @@ ClawPilot is a self-improving personal AI agent. It runs as a daemon on your lap
 
 ## Packages
 
-| Package | Description | Status |
-|---------|-------------|--------|
+| Package              | Description                  | Status         |
+| -------------------- | ---------------------------- | -------------- |
 | `@clawpilot/browser` | Playwright-based browser CLI | 🚧 In Progress |
-| `@clawpilot/core` | Agent daemon | 📋 Planned |
+| `@clawpilot/core`    | Agent daemon                 | 📋 Planned     |
 
 ## Quick Start
 

@@ -1,28 +1,26 @@
-import { Command } from "commander";
-import { output, success, error } from "../utils/output.js";
-import { BrowserManager } from "../browser.js";
+import { Command } from 'commander';
+import { output, success, error } from '../utils/output.js';
+import { BrowserManager } from '../browser.js';
 
 export function registerAuthCommands(program: Command): void {
-  const auth = program
-    .command("auth")
-    .description("Manage browser authentication");
+  const auth = program.command('auth').description('Manage browser authentication');
 
   auth
-    .command("login")
-    .description("Launch browser for manual Office 365 login")
+    .command('login')
+    .description('Launch browser for manual Office 365 login')
     .action(async () => {
       const manager = new BrowserManager();
       const result = await manager.login();
       if (result.success) {
         output(success({ message: result.message }));
       } else {
-        output(error("login_timeout", result.message));
+        output(error('login_timeout', result.message));
       }
     });
 
   auth
-    .command("status")
-    .description("Check if browser session is valid")
+    .command('status')
+    .description('Check if browser session is valid')
     .action(async () => {
       const manager = new BrowserManager();
       if (!manager.hasSession()) {
@@ -30,8 +28,8 @@ export function registerAuthCommands(program: Command): void {
           success({
             authenticated: false,
             session_age_hours: null,
-            message: "No session found. Run: clawpilot-browser auth login",
-          })
+            message: 'No session found. Run: clawpilot-browser auth login',
+          }),
         );
         return;
       }
@@ -40,16 +38,16 @@ export function registerAuthCommands(program: Command): void {
           authenticated: true,
           session_age_hours: null,
           message: "Session found. Use 'health full' for deep validation.",
-        })
+        }),
       );
     });
 
   auth
-    .command("clear")
-    .description("Clear saved browser session")
+    .command('clear')
+    .description('Clear saved browser session')
     .action(async () => {
       const manager = new BrowserManager();
       manager.clearSession();
-      output(success({ message: "Browser session cleared." }));
+      output(success({ message: 'Browser session cleared.' }));
     });
 }

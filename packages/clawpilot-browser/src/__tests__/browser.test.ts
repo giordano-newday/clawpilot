@@ -1,10 +1,10 @@
-import { describe, it, expect, afterEach } from "vitest";
-import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
-import { join } from "node:path";
-import { tmpdir } from "node:os";
-import { BrowserManager } from "../browser.js";
+import { describe, it, expect, afterEach } from 'vitest';
+import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
+import { BrowserManager } from '../browser.js';
 
-describe("BrowserManager", () => {
+describe('BrowserManager', () => {
   let tempDir: string | undefined;
 
   afterEach(() => {
@@ -14,27 +14,27 @@ describe("BrowserManager", () => {
     }
   });
 
-  it("reports hasSession=false for nonexistent state dir", () => {
-    const manager = new BrowserManager("/tmp/clawpilot-nonexistent-" + Date.now());
+  it('reports hasSession=false for nonexistent state dir', () => {
+    const manager = new BrowserManager('/tmp/clawpilot-nonexistent-' + Date.now());
     expect(manager.hasSession()).toBe(false);
   });
 
-  it("reports hasSession=false for empty state dir", () => {
-    tempDir = mkdtempSync(join(tmpdir(), "clawpilot-test-"));
+  it('reports hasSession=false for empty state dir', () => {
+    tempDir = mkdtempSync(join(tmpdir(), 'clawpilot-test-'));
     const manager = new BrowserManager(tempDir);
     expect(manager.hasSession()).toBe(false);
   });
 
-  it("reports hasSession=true when state dir has files", () => {
-    tempDir = mkdtempSync(join(tmpdir(), "clawpilot-test-"));
-    writeFileSync(join(tempDir, "cookies.json"), "{}");
+  it('reports hasSession=true when state dir has files', () => {
+    tempDir = mkdtempSync(join(tmpdir(), 'clawpilot-test-'));
+    writeFileSync(join(tempDir, 'cookies.json'), '{}');
     const manager = new BrowserManager(tempDir);
     expect(manager.hasSession()).toBe(true);
   });
 
-  it("clearSession removes the state directory", () => {
-    tempDir = mkdtempSync(join(tmpdir(), "clawpilot-test-"));
-    writeFileSync(join(tempDir, "cookies.json"), "{}");
+  it('clearSession removes the state directory', () => {
+    tempDir = mkdtempSync(join(tmpdir(), 'clawpilot-test-'));
+    writeFileSync(join(tempDir, 'cookies.json'), '{}');
     const manager = new BrowserManager(tempDir);
     expect(manager.hasSession()).toBe(true);
     manager.clearSession();
@@ -42,8 +42,8 @@ describe("BrowserManager", () => {
     tempDir = undefined; // already cleaned up
   });
 
-  it("clearSession is safe on nonexistent dir", () => {
-    const manager = new BrowserManager("/tmp/clawpilot-nonexistent-" + Date.now());
+  it('clearSession is safe on nonexistent dir', () => {
+    const manager = new BrowserManager('/tmp/clawpilot-nonexistent-' + Date.now());
     expect(() => manager.clearSession()).not.toThrow();
   });
 });

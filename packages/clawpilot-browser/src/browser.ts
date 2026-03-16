@@ -1,6 +1,6 @@
-import { existsSync, mkdirSync, readdirSync, rmSync } from "node:fs";
-import type { BrowserContext } from "playwright";
-import { DEFAULT_STATE_DIR } from "./utils/paths.js";
+import { existsSync, mkdirSync, readdirSync, rmSync } from 'node:fs';
+import type { BrowserContext } from 'playwright';
+import { DEFAULT_STATE_DIR } from './utils/paths.js';
 const LOGIN_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
 
 /** URL patterns that indicate successful Teams authentication */
@@ -11,11 +11,7 @@ const TEAMS_AUTHENTICATED_PATTERNS = [
 ];
 
 /** URL patterns that indicate a login page (session expired) */
-const LOGIN_PAGE_PATTERNS = [
-  /login\.microsoftonline\.com/,
-  /login\.live\.com/,
-  /adfs\./,
-];
+const LOGIN_PAGE_PATTERNS = [/login\.microsoftonline\.com/, /login\.live\.com/, /adfs\./];
 
 export class BrowserManager {
   readonly stateDir: string;
@@ -45,7 +41,7 @@ export class BrowserManager {
   async login(): Promise<{ success: boolean; message: string }> {
     mkdirSync(this.stateDir, { recursive: true, mode: 0o700 });
 
-    const { chromium } = await import("playwright");
+    const { chromium } = await import('playwright');
 
     const context = await chromium.launchPersistentContext(this.stateDir, {
       headless: false,
@@ -54,14 +50,13 @@ export class BrowserManager {
 
     try {
       const page = context.pages()[0] || (await context.newPage());
-      await page.goto("https://teams.microsoft.com");
-      await page.waitForURL(
-        (url) => TEAMS_AUTHENTICATED_PATTERNS.some((p) => p.test(url.href)),
-        { timeout: LOGIN_TIMEOUT_MS },
-      );
-      return { success: true, message: "Logged in successfully. Session saved." };
+      await page.goto('https://teams.microsoft.com');
+      await page.waitForURL((url) => TEAMS_AUTHENTICATED_PATTERNS.some((p) => p.test(url.href)), {
+        timeout: LOGIN_TIMEOUT_MS,
+      });
+      return { success: true, message: 'Logged in successfully. Session saved.' };
     } catch {
-      return { success: false, message: "Login timed out after 5 minutes." };
+      return { success: false, message: 'Login timed out after 5 minutes.' };
     } finally {
       await context.close();
     }
@@ -77,7 +72,7 @@ export class BrowserManager {
       return { valid: false, teamsAccessible: false, outlookAccessible: false };
     }
 
-    const { chromium } = await import("playwright");
+    const { chromium } = await import('playwright');
 
     let context: BrowserContext | null = null;
     try {
@@ -89,7 +84,7 @@ export class BrowserManager {
 
       let teamsOk = false;
       try {
-        await page.goto("https://teams.microsoft.com", { timeout: 15000 });
+        await page.goto('https://teams.microsoft.com', { timeout: 15000 });
         const url = page.url();
         teamsOk = !LOGIN_PAGE_PATTERNS.some((p) => p.test(url));
       } catch {
@@ -98,7 +93,7 @@ export class BrowserManager {
 
       let outlookOk = false;
       try {
-        await page.goto("https://outlook.office365.com", { timeout: 15000 });
+        await page.goto('https://outlook.office365.com', { timeout: 15000 });
         const url = page.url();
         outlookOk = !LOGIN_PAGE_PATTERNS.some((p) => p.test(url));
       } catch {
