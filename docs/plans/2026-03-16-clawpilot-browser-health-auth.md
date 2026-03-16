@@ -1118,7 +1118,7 @@ pnpm lint
 
 ## Architecture
 
-See [prjpilot-project.md](./prjpilot-project.md) for the full architecture document.
+See [clawpilot-project.md](../../clawpilot-project.md) for the full architecture document.
 
 ## License
 
