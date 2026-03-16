@@ -138,9 +138,10 @@ export async function fetchPage(options: FetchOptions): Promise<FetchResult> {
 
   try {
     context = await chromium.launchPersistentContext(DEFAULT_STATE_DIR, {
-      headless: true,
+      ...createBackgroundWindowLaunchOptions(),
     });
     const page = context.pages()[0] ?? (await context.newPage());
+    await makeWindowUnobtrusive(page);
     await page.goto(options.url, {
       timeout: NAVIGATION_TIMEOUT,
       waitUntil: 'domcontentloaded',

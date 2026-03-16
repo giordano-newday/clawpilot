@@ -1,6 +1,10 @@
 import { existsSync, mkdirSync, readdirSync, rmSync } from 'node:fs';
 import type { BrowserContext } from 'playwright';
 import { DEFAULT_STATE_DIR } from './utils/paths.js';
+import {
+  createBackgroundWindowLaunchOptions,
+  makeWindowUnobtrusive,
+} from './utils/window.js';
 const LOGIN_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
 
 /** URL patterns that indicate successful Teams authentication */
@@ -76,11 +80,13 @@ export class BrowserManager {
 
     let context: BrowserContext | null = null;
     try {
-      context = await chromium.launchPersistentContext(this.stateDir, {
-        headless: true,
-      });
+      context = await chromium.launchPersistentContext(
+        this.stateDir,
+        createBackgroundWindowLaunchOptions(),
+      );
 
       const page = context.pages()[0] || (await context.newPage());
+      await makeWindowUnobtrusive(page);
 
       let teamsOk = false;
       try {
