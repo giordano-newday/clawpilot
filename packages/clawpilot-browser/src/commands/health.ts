@@ -1,6 +1,6 @@
 import { Command } from "commander";
-import { output, success } from "../utils/output.js";
-import { checkInstall, checkSession } from "../health.js";
+import { output } from "../utils/output.js";
+import { checkInstall, checkSession, fullHealthCheck } from "../health.js";
 
 export function registerHealthCommands(program: Command): void {
   const health = program
@@ -25,6 +25,6 @@ export function registerHealthCommands(program: Command): void {
     .command("full")
     .description("Full health report")
     .action(async () => {
-      output(success({ status: "stub" }));
+      output(await fullHealthCheck());
     });
 }

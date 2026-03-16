@@ -1,7 +1,7 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { existsSync, readdirSync, statSync } from "node:fs";
-import { success, error, type CLIResponse } from "./utils/output.js";
+import { success, error, type CLIResponse, type ErrorResponse } from "./utils/output.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -107,5 +107,28 @@ export async function checkSession(stateDir?: string): Promise<CLIResponse<Sessi
     session_exists: true,
     session_valid: true, // Optimistic — full check does real browser validation
     session_age_hours: ageHours,
+  });
+}
+
+export async function fullHealthCheck(): Promise<CLIResponse<FullHealthData>> {
+  const installResult = await checkInstall();
+  if (!installResult.ok) {
+    return error(
+      (installResult as ErrorResponse).error,
+      (installResult as ErrorResponse).message,
+    );
+  }
+
+  const sessionResult = await checkSession();
+  const sessionData: SessionCheckData =
+    sessionResult.ok && sessionResult.data
+      ? sessionResult.data
+      : { session_exists: false, session_valid: false, session_age_hours: null };
+
+  return success<FullHealthData>({
+    ...installResult.data!,
+    ...sessionData,
+    teams_accessible: null,
+    outlook_accessible: null,
   });
 }
