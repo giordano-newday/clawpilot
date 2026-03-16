@@ -36,3 +36,5 @@ run_test 'auth status --validate' auth status --validate
 run_test 'health full' health full
 
 printf '\nResults: %s passed, %s failed\n' "$PASS" "$FAIL"
+
+[ "$FAIL" -eq 0 ] || exit 1

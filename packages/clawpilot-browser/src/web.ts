@@ -100,11 +100,18 @@ export async function searchWeb(options: SearchOptions): Promise<SearchResult[]>
 
   try {
     context = await chromium.launchPersistentContext(DEFAULT_STATE_DIR, {
-      headless: true,
+      // DuckDuckGo frequently serves an anti-bot challenge to headless browsers.
+      // The persisted headed context matches the authenticated browser flow and returns real results.
+      headless: false,
     });
     const page = context.pages()[0] ?? (await context.newPage());
-    await page.goto(searchUrl, { timeout: NAVIGATION_TIMEOUT });
-    await page.waitForSelector('[data-testid="result"]', { timeout: SEARCH_WAIT_TIMEOUT });
+    await page.goto(searchUrl, {
+      timeout: NAVIGATION_TIMEOUT,
+      waitUntil: 'networkidle',
+    });
+    await page.waitForSelector('a[data-testid="result-title-a"]', {
+      timeout: SEARCH_WAIT_TIMEOUT,
+    });
     const html = await page.content();
     return parseSearchResults(html, maxResults);
   } finally {
