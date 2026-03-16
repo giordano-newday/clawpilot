@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { checkInstall, checkSession, getStateDir } from '../health.js';
+import { checkInstall, checkSession } from '../health.js';
 
 describe('checkSession', () => {
   it('returns session_exists:false when state dir does not exist', async () => {

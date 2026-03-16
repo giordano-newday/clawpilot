@@ -29,10 +29,8 @@ export function getStateDir(): string {
 
 export async function checkInstall(): Promise<CLIResponse<InstallCheckData>> {
   // Check if playwright can be imported
-  let playwrightInstalled = false;
   try {
     await import('playwright');
-    playwrightInstalled = true;
   } catch {
     return error(
       'not_installed',
@@ -41,7 +39,7 @@ export async function checkInstall(): Promise<CLIResponse<InstallCheckData>> {
   }
 
   // Check for chromium binary
-  let browserBinary: string | null = null;
+  let browserBinary: string | null;
   let browserVersion: string | null = null;
 
   try {
@@ -69,7 +67,7 @@ export async function checkInstall(): Promise<CLIResponse<InstallCheckData>> {
   }
 
   return success<InstallCheckData>({
-    playwright_installed: playwrightInstalled,
+    playwright_installed: true,
     browser_binary: browserBinary,
     browser_version: browserVersion,
   });
@@ -113,6 +111,10 @@ export async function fullHealthCheck(): Promise<CLIResponse<FullHealthData>> {
     return error((installResult as ErrorResponse).error, (installResult as ErrorResponse).message);
   }
 
+  if (!installResult.data) {
+    return error('unexpected_error', 'Install check returned no data');
+  }
+
   const sessionResult = await checkSession();
   const sessionData: SessionCheckData =
     sessionResult.ok && sessionResult.data
@@ -120,7 +122,7 @@ export async function fullHealthCheck(): Promise<CLIResponse<FullHealthData>> {
       : { session_exists: false, session_valid: false, session_age_hours: null };
 
   return success<FullHealthData>({
-    ...installResult.data!,
+    ...installResult.data,
     ...sessionData,
     teams_accessible: null,
     outlook_accessible: null,
