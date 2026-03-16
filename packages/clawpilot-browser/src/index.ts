@@ -3,6 +3,7 @@
 import { Command } from 'commander';
 import { registerHealthCommands } from './commands/health.js';
 import { registerAuthCommands } from './commands/auth.js';
+import { registerWebCommands } from './commands/web.js';
 
 const program = new Command();
 
@@ -13,5 +14,6 @@ program
 
 registerHealthCommands(program);
 registerAuthCommands(program);
+registerWebCommands(program);
 
 program.parse();
