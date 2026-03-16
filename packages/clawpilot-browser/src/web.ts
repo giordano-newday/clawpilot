@@ -2,6 +2,10 @@ import { Readability } from '@mozilla/readability';
 import { parseHTML } from 'linkedom';
 import type { BrowserContext } from 'playwright';
 import { DEFAULT_STATE_DIR } from './utils/paths.js';
+import {
+  createBackgroundWindowLaunchOptions,
+  makeWindowUnobtrusive,
+} from './utils/window.js';
 
 export interface SearchResult {
   title: string;
@@ -101,10 +105,11 @@ export async function searchWeb(options: SearchOptions): Promise<SearchResult[]>
   try {
     context = await chromium.launchPersistentContext(DEFAULT_STATE_DIR, {
       // DuckDuckGo frequently serves an anti-bot challenge to headless browsers.
-      // The persisted headed context matches the authenticated browser flow and returns real results.
-      headless: false,
+      // Keep the headed browser tiny and offscreen, then minimize it when Chromium allows.
+      ...createBackgroundWindowLaunchOptions(),
     });
     const page = context.pages()[0] ?? (await context.newPage());
+    await makeWindowUnobtrusive(page);
     await page.goto(searchUrl, {
       timeout: NAVIGATION_TIMEOUT,
       waitUntil: 'networkidle',
