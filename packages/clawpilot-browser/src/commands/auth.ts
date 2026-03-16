@@ -46,13 +46,14 @@ export function registerAuthCommands(program: Command): void {
 
       try {
         const result = await manager.validateSession();
-        const message = result.teamsAccessible && result.outlookAccessible
-          ? 'Session is valid. Teams and Outlook are accessible.'
-          : result.teamsAccessible
-            ? 'Session is valid. Teams is accessible (Outlook check failed).'
-            : result.outlookAccessible
-              ? 'Session is valid. Outlook is accessible (Teams check failed).'
-              : 'Session has expired. Run: clawpilot-browser auth login';
+        const message =
+          result.teamsAccessible && result.outlookAccessible
+            ? 'Session is valid. Teams and Outlook are accessible.'
+            : result.teamsAccessible
+              ? 'Session is valid. Teams is accessible (Outlook check failed).'
+              : result.outlookAccessible
+                ? 'Session is valid. Outlook is accessible (Teams check failed).'
+                : 'Session has expired. Run: clawpilot-browser auth login';
         output(
           success({
             authenticated: result.valid,

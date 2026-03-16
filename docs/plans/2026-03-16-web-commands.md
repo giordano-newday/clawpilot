@@ -13,6 +13,7 @@
 ### Task 1: Install Dependencies
 
 **Files:**
+
 - Modify: `packages/clawpilot-browser/package.json`
 
 **Step 1: Install readability + linkedom**
@@ -39,6 +40,7 @@ Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
 ### Task 2: Web Search Module (TDD)
 
 **Files:**
+
 - Create: `packages/clawpilot-browser/src/web.ts`
 - Create: `packages/clawpilot-browser/src/__tests__/web.test.ts`
 
@@ -83,6 +85,7 @@ describe('web module', () => {
 ```
 
 The actual tests need to test the **pure functions** that parse HTML/extract content, not the Playwright browser automation (which is tested manually). Design the module to separate:
+
 1. Browser automation (launch, navigate, get HTML) — excluded from coverage
 2. HTML parsing/extraction (pure functions) — unit tested
 
@@ -204,7 +207,7 @@ export async function searchWeb(options: SearchOptions): Promise<SearchResult[]>
   });
 
   try {
-    const page = context.pages()[0] ?? await context.newPage();
+    const page = context.pages()[0] ?? (await context.newPage());
     const encodedQuery = encodeURIComponent(query);
     await page.goto(`https://duckduckgo.com/?q=${encodedQuery}&ia=web`, {
       waitUntil: 'domcontentloaded',
@@ -232,7 +235,7 @@ export async function fetchPage(options: FetchOptions): Promise<FetchResult> {
   });
 
   try {
-    const page = context.pages()[0] ?? await context.newPage();
+    const page = context.pages()[0] ?? (await context.newPage());
     await page.goto(url, {
       waitUntil: 'domcontentloaded',
       timeout: 30_000,
@@ -389,6 +392,7 @@ Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
 ### Task 3: Web CLI Commands
 
 **Files:**
+
 - Create: `packages/clawpilot-browser/src/commands/web.ts`
 - Modify: `packages/clawpilot-browser/src/index.ts`
 
@@ -418,12 +422,7 @@ export function registerWebCommands(program: Command): void {
           }),
         );
       } catch (err) {
-        output(
-          error(
-            'search_failed',
-            err instanceof Error ? err.message : 'Web search failed',
-          ),
-        );
+        output(error('search_failed', err instanceof Error ? err.message : 'Web search failed'));
       }
     });
 
@@ -436,12 +435,7 @@ export function registerWebCommands(program: Command): void {
         const result = await fetchPage({ url, readability: opts.readability });
         output(success(result));
       } catch (err) {
-        output(
-          error(
-            'fetch_failed',
-            err instanceof Error ? err.message : 'Page fetch failed',
-          ),
-        );
+        output(error('fetch_failed', err instanceof Error ? err.message : 'Page fetch failed'));
       }
     });
 }
@@ -450,11 +444,13 @@ export function registerWebCommands(program: Command): void {
 **Step 2: Register in `src/index.ts`**
 
 Add import:
+
 ```typescript
 import { registerWebCommands } from './commands/web.js';
 ```
 
 Add registration before `program.parse()`:
+
 ```typescript
 registerWebCommands(program);
 ```
@@ -486,6 +482,7 @@ Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
 ### Task 4: Upgrade Auth Status with Session Validation
 
 **Files:**
+
 - Modify: `packages/clawpilot-browser/src/commands/auth.ts`
 
 The current `auth status` only checks if browser state files exist on disk. Upgrade it to optionally validate by navigating to Teams/Outlook (using the existing `BrowserManager.validateSession()`).
@@ -498,7 +495,11 @@ In `src/commands/auth.ts`, update the `status` action to add a `--validate` flag
 auth
   .command('status')
   .description('Check if browser session is valid')
-  .option('--validate', 'Navigate to Teams/Outlook to validate session (slower but accurate)', false)
+  .option(
+    '--validate',
+    'Navigate to Teams/Outlook to validate session (slower but accurate)',
+    false,
+  )
   .action(async (opts: { validate: boolean }): Promise<void> => {
     const manager = new BrowserManager();
     const hasSession = manager.hasSession();
@@ -581,6 +582,7 @@ Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
 ### Task 5: Manual Test Script
 
 **Files:**
+
 - Create: `packages/clawpilot-browser/scripts/manual-test-web.sh`
 
 Create a shell script that exercises all web commands for manual QA:
@@ -629,6 +631,7 @@ echo "Results: $PASS passed, $FAIL failed"
 ```
 
 Make executable:
+
 ```bash
 chmod +x packages/clawpilot-browser/scripts/manual-test-web.sh
 ```
@@ -656,6 +659,7 @@ Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
 ### Task 6: Update Coverage Config + Docs
 
 **Files:**
+
 - Modify: `packages/clawpilot-browser/vitest.config.ts` (add web.ts browser functions to excludes)
 - Modify: `README.md` (add web commands to docs)
 
@@ -669,7 +673,7 @@ If coverage drops below 80%, add `src/web.ts` to the exclude list in `vitest.con
 
 Add a "Web Commands" section to the CLI reference:
 
-```markdown
+````markdown
 ### Web Commands
 
 ```bash
@@ -679,7 +683,9 @@ clawpilot-browser web search "your query" [--max-results 5]
 # Fetch and extract content from a URL
 clawpilot-browser web fetch "https://example.com" [--readability]
 ```
-```
+````
+
+````
 
 **Step 3: Run full checks**
 
@@ -689,7 +695,7 @@ pnpm exec eslint .
 pnpm exec prettier --check .
 pnpm test
 pnpm build
-```
+````
 
 **Step 4: Commit**
 
