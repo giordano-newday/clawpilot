@@ -42,7 +42,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Install Playwright
-        run: pnpm exec playwright install chromium
+        run: cd packages/clawpilot-browser && pnpm exec playwright install chromium
 
       - name: Run tests with coverage
         run: cd packages/clawpilot-browser && pnpm test:coverage
