@@ -1,5 +1,10 @@
 # 🦀 ClawPilot
 
+[![CI](https://github.com/giordano-newday/clawpilot/actions/workflows/ci.yml/badge.svg)](https://github.com/giordano-newday/clawpilot/actions/workflows/ci.yml)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7+-blue.svg)](https://www.typescriptlang.org/)
+[![Coverage](./docs/reports/badges/coverage.svg)](https://giordano-newday.github.io/clawpilot/)
+[![Tests](./docs/reports/badges/tests.svg)](https://giordano-newday.github.io/clawpilot/)
+
 <p align="center">
   <img src="mascotte.png" alt="ClawPilot Mascotte" width="300" />
 </p>
