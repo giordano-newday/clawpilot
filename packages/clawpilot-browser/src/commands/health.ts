@@ -1,6 +1,6 @@
 import { Command } from "commander";
 import { output, success } from "../utils/output.js";
-import { checkInstall } from "../health.js";
+import { checkInstall, checkSession } from "../health.js";
 
 export function registerHealthCommands(program: Command): void {
   const health = program
@@ -18,7 +18,7 @@ export function registerHealthCommands(program: Command): void {
     .command("check-session")
     .description("Verify browser auth session is valid")
     .action(async () => {
-      output(success({ status: "stub" }));
+      output(await checkSession());
     });
 
   health
