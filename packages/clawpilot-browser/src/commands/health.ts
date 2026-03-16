@@ -1,5 +1,6 @@
 import { Command } from "commander";
 import { output, success } from "../utils/output.js";
+import { checkInstall } from "../health.js";
 
 export function registerHealthCommands(program: Command): void {
   const health = program
@@ -10,7 +11,7 @@ export function registerHealthCommands(program: Command): void {
     .command("check-install")
     .description("Verify Playwright and browser binaries are installed")
     .action(async () => {
-      output(success({ status: "stub" }));
+      output(await checkInstall());
     });
 
   health
