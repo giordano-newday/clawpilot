@@ -1,6 +1,7 @@
 {
   "name": "clawpilot",
   "private": true,
+  "type": "module",
   "description": "A personal AI agent that runs on your laptop, learns from you, and gets things done.",
   "scripts": {
     "build": "pnpm -r build",
