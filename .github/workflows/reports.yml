@@ -1,0 +1,93 @@
+name: Reports
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: 'pages'
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    outputs:
+      pages_configured: ${{ steps.setup-pages.outcome == 'success' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright
+        run: pnpm exec playwright install chromium
+
+      - name: Run tests with coverage
+        run: cd packages/clawpilot-browser && pnpm test:coverage
+
+      - name: Download previous history
+        continue-on-error: true
+        run: |
+          mkdir -p docs/reports/history
+          curl -sSL \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.raw+json" \
+            https://api.github.com/repos/${{ github.repository }}/contents/docs/reports/history/data.json \
+            -o docs/reports/history/data.json \
+            || echo '{"runs":[]}' > docs/reports/history/data.json
+
+      - name: Generate report
+        run: node scripts/generate-report.js
+
+      - name: Commit badge and history files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/reports/badges/ docs/reports/history/data.json
+          git diff --cached --quiet || git commit -m "chore: update coverage badges and history [skip ci]"
+          git push
+
+      - name: Setup Pages
+        id: setup-pages
+        continue-on-error: true
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        if: steps.setup-pages.outcome == 'success'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'docs/reports'
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    if: needs.build.outputs.pages_configured == 'true'
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
