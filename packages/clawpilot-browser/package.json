@@ -2,7 +2,7 @@
   "name": "@clawpilot/browser",
   "version": "0.1.0",
   "private": true,
-  "description": "Playwright-based browser CLI for ClawPilot",
+  "description": "Playwright-based browser CLI for Clawpilot",
   "type": "module",
   "bin": {
     "clawpilot-browser": "./dist/index.js"

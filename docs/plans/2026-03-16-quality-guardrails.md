@@ -504,7 +504,7 @@ Adapted from Vulcan — generates SVG badges from test-results.json and coverage
 
 Adapted from Vulcan — generates full HTML dashboard with Chart.js trends, badge JSON/SVG, and historical data. Reads from `packages/clawpilot-browser/test-results.json` and `packages/clawpilot-browser/coverage/coverage-summary.json`. Writes to `docs/reports/`.
 
-Title should say "ClawPilot" not "Vulcan CLI". Link should point to `giordano-newday/clawpilot`.
+Title should say "Clawpilot" not "Vulcan CLI". Link should point to `giordano-newday/clawpilot`.
 
 **Step 4: Seed history**
 
@@ -678,7 +678,7 @@ Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
 Add badges after the title, before the mascotte image:
 
 ```markdown
-# 🦀 ClawPilot
+# 🦀 Clawpilot
 
 [![CI](https://github.com/giordano-newday/clawpilot/actions/workflows/ci.yml/badge.svg)](https://github.com/giordano-newday/clawpilot/actions/workflows/ci.yml)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7+-blue.svg)](https://www.typescriptlang.org/)

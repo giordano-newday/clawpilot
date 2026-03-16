@@ -1,28 +1,28 @@
-# ClawPilot
+# Clawpilot
 
 > A personal AI agent that runs on your laptop, learns from you, and gets things done.
 
 ## 1. Vision & Overview
 
-ClawPilot is a self-improving personal AI agent built on the GitHub Copilot SDK. It runs as a daemon on your laptop, interacts with your work tools (Teams, Outlook, Jira, Confluence, GitHub), and learns your preferences over time.
+Clawpilot is a self-improving personal AI agent built on the GitHub Copilot SDK. It runs as a daemon on your laptop, interacts with your work tools (Teams, Outlook, Jira, Confluence, GitHub), and learns your preferences over time.
 
-It is inspired by [pi](https://github.com/badlogic/pi-mono) (the minimal agent framework behind OpenClaw) in philosophy: small core, aggressive extensibility, skills over hardcoded features. But where pi is a coding agent, ClawPilot is a **work agent** — it manages your day, prepares for your meetings, searches your channels, and adapts to how you work.
+It is inspired by [pi](https://github.com/badlogic/pi-mono) (the minimal agent framework behind OpenClaw) in philosophy: small core, aggressive extensibility, skills over hardcoded features. But where pi is a coding agent, Clawpilot is a **work agent** — it manages your day, prepares for your meetings, searches your channels, and adapts to how you work.
 
 ### Core Principles
 
 - **Self-contained**: No third-party API dependencies beyond the Copilot SDK. Web search uses DuckDuckGo via Playwright. Office integration uses browser automation. Everything runs locally.
-- **Self-improving**: ClawPilot learns from every interaction. It stores history, extracts patterns, and adapts its behaviour based on your corrections and preferences.
+- **Self-improving**: Clawpilot learns from every interaction. It stores history, extracts patterns, and adapts its behaviour based on your corrections and preferences.
 - **Extensible via skills and workflows**: The agent's capabilities are defined by markdown files, not code. Skills teach it how to use CLI tools. Workflows define scheduled or triggered sequences. Both can be created, edited, and managed by the agent itself.
 - **Resilient**: Designed for laptops that close. On restart, it catches up on what it missed — runs missed jobs, checks for updates, and summarises the gap.
-- **Personality-driven**: A configurable "soul" defines how ClawPilot communicates — tone, proactiveness, summary style, boundaries. The soul evolves as the agent learns your preferences.
-- **Graceful degradation**: ClawPilot detects whether Playwright is available and whether browser sessions are valid. When browser tools aren't available, it continues working with non-browser tools (CLI skills, file system, bash) and clearly reports what's degraded.
+- **Personality-driven**: A configurable "soul" defines how Clawpilot communicates — tone, proactiveness, summary style, boundaries. The soul evolves as the agent learns your preferences.
+- **Graceful degradation**: Clawpilot detects whether Playwright is available and whether browser sessions are valid. When browser tools aren't available, it continues working with non-browser tools (CLI skills, file system, bash) and clearly reports what's degraded.
 
 ### What It Does (Day in the Life)
 
-1. You open your laptop at 8am. ClawPilot starts, runs the morning briefing workflow: checks your Outlook calendar, queries your Jira board, searches Teams channels for overnight activity, and presents a briefing via desktop notification and the REPL log.
+1. You open your laptop at 8am. Clawpilot starts, runs the morning briefing workflow: checks your Outlook calendar, queries your Jira board, searches Teams channels for overnight activity, and presents a briefing via desktop notification and the REPL log.
 2. At 9:20am, you have a 9:30 standup. The meeting-prep workflow fires: it pulls what you committed yesterday (via `gh`), your in-progress Jira tickets, and any blockers mentioned in the mobile-dev Teams channel.
-3. At 13:50, ten minutes before a cross-team sync, ClawPilot queries the meeting invite for attendees, searches its own history for past context with those people, pulls relevant Confluence pages, and shows preparation notes.
-4. You want to know what happened in a Teams channel: `clawpilot send "search the mobile-dev channel for messages about the release since Monday"` — ClawPilot queries Teams via Playwright and returns a summary.
+3. At 13:50, ten minutes before a cross-team sync, Clawpilot queries the meeting invite for attendees, searches its own history for past context with those people, pulls relevant Confluence pages, and shows preparation notes.
+4. You want to know what happened in a Teams channel: `clawpilot send "search the mobile-dev channel for messages about the release since Monday"` — Clawpilot queries Teams via Playwright and returns a summary.
 5. At 17:00 on Friday, a weekly summary workflow fires: key conversations found via Teams/Outlook search, tickets moved, PRs merged.
 
 ---
@@ -33,7 +33,7 @@ It is inspired by [pi](https://github.com/badlogic/pi-mono) (the minimal agent f
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                     ClawPilot Core                       │
+│                     Clawpilot Core                       │
 │                                                         │
 │  ┌──────────┐  ┌──────────┐  ┌───────────┐             │
 │  │  Copilot  │  │   Soul   │  │ Scheduler │             │
@@ -145,8 +145,8 @@ clawpilot/
 │   │           └── parsers.ts          # HTML → structured data
 │   │
 │   └── menubar/                        # macOS menubar app (phase 2)
-│       ├── ClawPilot/
-│       │   ├── ClawPilotApp.swift
+│       ├── Clawpilot/
+│       │   ├── ClawpilotApp.swift
 │       │   ├── StatusViewModel.swift
 │       │   ├── PresenceDetector.swift
 │       │   └── Assets.xcassets/
@@ -164,7 +164,7 @@ clawpilot/
 ### Runtime File Layout
 
 ```
-~/.clawpilot/                           # ClawPilot-specific data
+~/.clawpilot/                           # Clawpilot-specific data
 ├── config.yaml                         # User configuration
 ├── soul.md                             # Active soul (or symlink to souls/)
 ├── state/
@@ -195,7 +195,7 @@ clawpilot/
 
 ### 3.1 Core (`packages/core`)
 
-The brain of ClawPilot. A TypeScript/Bun application that orchestrates everything.
+The brain of Clawpilot. A TypeScript/Bun application that orchestrates everything.
 
 **Responsibilities:**
 
@@ -301,7 +301,7 @@ clawpilot status                # Overall system status
 clawpilot catch-up              # Force catch-up now
 ```
 
-### 3.2 ClawPilot Browser (`packages/clawpilot-browser`)
+### 3.2 Clawpilot Browser (`packages/clawpilot-browser`)
 
 A standalone Playwright-based CLI that handles all browser interactions. Called by the core agent as a bash tool. Self-manages its Chrome session with built-in health verification.
 
@@ -403,7 +403,7 @@ The `check-session` command verifies:
 1. A browser state directory exists at `~/.clawpilot/state/browser-state/`
 2. Quick navigation to Teams/Outlook — does it land on the app or a login page?
 
-If installation is missing, ClawPilot provides clear instructions:
+If installation is missing, Clawpilot provides clear instructions:
 
 ```
 Playwright is not installed. To set up browser tools:
@@ -456,7 +456,7 @@ A native macOS SwiftUI app using `MenuBarExtra`. Tiny memory footprint, lives in
 
 **Responsibilities:**
 
-- Show ClawPilot status (running/degraded/stopped) via icon colour
+- Show Clawpilot status (running/degraded/stopped) via icon colour
 - Display last activity timestamp and browser health
 - Quick actions: restart, re-auth, open REPL, open logs
 - Presence detection via screen lock events (phase 2)
@@ -476,7 +476,7 @@ Debounce: only transition to "away" after screen locked for 2 minutes (configura
 
 ## 4. Skill System
 
-Skills are markdown files that teach ClawPilot how to use external tools. They live in `~/.agents/skills/` (agent-agnostic, shareable across agents) and are managed via a ClawPilot-specific manifest at `~/.clawpilot/skills-manifest.yaml`.
+Skills are markdown files that teach Clawpilot how to use external tools. They live in `~/.agents/skills/` (agent-agnostic, shareable across agents) and are managed via a Clawpilot-specific manifest at `~/.clawpilot/skills-manifest.yaml`.
 
 ### Skill File Format
 
@@ -567,7 +567,7 @@ skills:
 
 Skills are NOT all loaded into every agent session — that would bloat the context window. Instead:
 
-1. On startup, ClawPilot reads all enabled skill files and builds a **skill index**: name, description (first paragraph), and trigger keywords.
+1. On startup, Clawpilot reads all enabled skill files and builds a **skill index**: name, description (first paragraph), and trigger keywords.
 2. The skill index (just names + descriptions) is always included in the system prompt.
 3. When the agent determines it needs a skill, it calls an internal tool to load the full skill content into the current session context.
 
@@ -600,7 +600,7 @@ When the agent first uses a skill, it checks prerequisites:
 
 ### Default Skills
 
-ClawPilot ships with these skill files (copied to `~/.agents/skills/` on first run if not present):
+Clawpilot ships with these skill files (copied to `~/.agents/skills/` on first run if not present):
 
 | Skill           | CLI              | Purpose                                      |
 | --------------- | ---------------- | -------------------------------------------- |
@@ -612,7 +612,7 @@ ClawPilot ships with these skill files (copied to `~/.agents/skills/` on first r
 
 ## 5. Soul System
 
-The soul defines ClawPilot's personality, communication style, and behavioural boundaries. It's a markdown file that gets injected into every agent session's system prompt.
+The soul defines Clawpilot's personality, communication style, and behavioural boundaries. It's a markdown file that gets injected into every agent session's system prompt.
 
 ### Soul File Format
 
@@ -621,7 +621,7 @@ The soul defines ClawPilot's personality, communication style, and behavioural b
 
 ## Identity
 
-You are ClawPilot, a personal work assistant. Your communication style
+You are Clawpilot, a personal work assistant. Your communication style
 is dry, concise, and occasionally witty. You address the user by name
 when it adds warmth, but don't overdo it. British-inflected tone.
 
@@ -796,7 +796,7 @@ workflows:
 
 ### Catch-Up Policies
 
-When ClawPilot restarts and finds missed workflow runs:
+When Clawpilot restarts and finds missed workflow runs:
 
 | Policy                  | Behaviour                                                       |
 | ----------------------- | --------------------------------------------------------------- |
@@ -810,8 +810,8 @@ When ClawPilot restarts and finds missed workflow runs:
 Workflow outputs go to:
 
 - **desktop_notification**: macOS notification via `node-notifier` (summary only)
-- **log**: Full output written to the ClawPilot log and stored in conversation history
-- **stdout**: If ClawPilot is running in REPL mode, output streams to the terminal
+- **log**: Full output written to the Clawpilot log and stored in conversation history
+- **stdout**: If Clawpilot is running in REPL mode, output streams to the terminal
 - **file**: Optional, write output to a specified file path
 
 The output destination is configurable per workflow in the `## Output` section.
@@ -958,7 +958,7 @@ Example session:
 
 ```
 $ clawpilot repl
-🤖 ClawPilot (jarvis) ready. Browser: healthy. 3 skills active.
+🤖 Clawpilot (jarvis) ready. Browser: healthy. 3 skills active.
 
 > What's on my calendar today?
 [agent queries Outlook calendar via clawpilot-browser]
@@ -1246,7 +1246,7 @@ learning:
 
 ## 13. Tool Inventory
 
-Complete list of tools available to the ClawPilot agent:
+Complete list of tools available to the Clawpilot agent:
 
 ### Browser Tools (via `clawpilot-browser` CLI)
 
@@ -1273,7 +1273,7 @@ Complete list of tools available to the ClawPilot agent:
 | `run_command`    | Execute a bash command (used by skills)   |
 | `desktop_notify` | Send a macOS/Windows desktop notification |
 
-### Internal Tools (ClawPilot state)
+### Internal Tools (Clawpilot state)
 
 | Tool              | Description                                         |
 | ----------------- | --------------------------------------------------- |
@@ -1315,7 +1315,7 @@ Complete list of tools available to the ClawPilot agent:
 
 ### Phase 1: Foundation (MVP)
 
-**Goal:** ClawPilot runs as a daemon, you can talk to it via REPL and CLI, it can use skills and execute workflows, and it stores history. Browser tools are available with clear health reporting.
+**Goal:** Clawpilot runs as a daemon, you can talk to it via REPL and CLI, it can use skills and execute workflows, and it stores history. Browser tools are available with clear health reporting.
 
 #### Step 1: Project Scaffold
 
@@ -1440,7 +1440,7 @@ Complete list of tools available to the ClawPilot agent:
 
 ## Identity
 
-You are ClawPilot, a personal work assistant running on Giordano's laptop.
+You are Clawpilot, a personal work assistant running on Giordano's laptop.
 Your style is dry, concise, and occasionally witty — think British butler
 who also happens to be very good with technology. You call him by name
 when appropriate but don't overdo it.

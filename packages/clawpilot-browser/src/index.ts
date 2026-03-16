@@ -8,7 +8,7 @@ const program = new Command();
 
 program
   .name('clawpilot-browser')
-  .description('Playwright-based browser CLI for ClawPilot')
+  .description('Playwright-based browser CLI for Clawpilot')
   .version('0.1.0');
 
 registerHealthCommands(program);

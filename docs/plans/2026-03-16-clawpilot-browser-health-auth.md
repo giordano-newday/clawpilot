@@ -1,4 +1,4 @@
-# ClawPilot Browser — Health & Auth Implementation Plan
+# Clawpilot Browser — Health & Auth Implementation Plan
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
@@ -92,7 +92,7 @@ auto-install-peers=true
   "name": "@clawpilot/core",
   "version": "0.0.1",
   "private": true,
-  "description": "ClawPilot agent core (placeholder)"
+  "description": "Clawpilot agent core (placeholder)"
 }
 ```
 
@@ -103,7 +103,7 @@ auto-install-peers=true
   "name": "@clawpilot/browser",
   "version": "0.1.0",
   "private": true,
-  "description": "Playwright-based browser CLI for ClawPilot",
+  "description": "Playwright-based browser CLI for Clawpilot",
   "type": "module",
   "bin": {
     "clawpilot-browser": "./dist/index.js"
@@ -295,7 +295,7 @@ const program = new Command();
 
 program
   .name("clawpilot-browser")
-  .description("Playwright-based browser CLI for ClawPilot")
+  .description("Playwright-based browser CLI for Clawpilot")
   .version("0.1.0");
 
 registerHealthCommands(program);
@@ -1057,10 +1057,10 @@ node dist/index.js auth status
 **Step 1: Write README**
 
 ````markdown
-# 🦀 ClawPilot
+# 🦀 Clawpilot
 
 <p align="center">
-  <img src="mascotte.png" alt="ClawPilot Mascotte" width="300" />
+  <img src="mascotte.png" alt="Clawpilot Mascotte" width="300" />
 </p>
 
 <p align="center">
@@ -1069,7 +1069,7 @@ node dist/index.js auth status
 
 ---
 
-ClawPilot is a self-improving personal AI agent. It runs as a daemon on your laptop, interacts with your work tools (Teams, Outlook, Jira, Confluence, GitHub), and learns your preferences over time.
+Clawpilot is a self-improving personal AI agent. It runs as a daemon on your laptop, interacts with your work tools (Teams, Outlook, Jira, Confluence, GitHub), and learns your preferences over time.
 
 ## Packages
 

@@ -1,4 +1,4 @@
-# 🦀 ClawPilot
+# 🦀 Clawpilot
 
 [![CI](https://github.com/giordano-newday/clawpilot/actions/workflows/ci.yml/badge.svg)](https://github.com/giordano-newday/clawpilot/actions/workflows/ci.yml)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7+-blue.svg)](https://www.typescriptlang.org/)
@@ -6,7 +6,7 @@
 [![Tests](./docs/reports/badges/tests.svg)](https://giordano-newday.github.io/clawpilot/)
 
 <p align="center">
-  <img src="mascotte.png" alt="ClawPilot Mascotte" width="300" />
+  <img src="mascotte.png" alt="Clawpilot Mascotte" width="300" />
 </p>
 
 <p align="center">
@@ -15,7 +15,7 @@
 
 ---
 
-ClawPilot is a self-improving personal AI agent. It runs as a daemon on your laptop, interacts with your work tools (Teams, Outlook, Jira, Confluence, GitHub), and learns your preferences over time.
+Clawpilot is a self-improving personal AI agent. It runs as a daemon on your laptop, interacts with your work tools (Teams, Outlook, Jira, Confluence, GitHub), and learns your preferences over time.
 
 ## Packages
 
