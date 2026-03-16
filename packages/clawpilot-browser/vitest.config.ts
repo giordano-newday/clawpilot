@@ -11,7 +11,13 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'json', 'json-summary', 'html'],
       include: ['src/**/*.ts'],
-      exclude: ['src/**/__tests__/**', 'src/index.ts', 'src/browser.ts', 'src/commands/**', 'src/health.ts'],
+      exclude: [
+        'src/**/__tests__/**',
+        'src/index.ts',
+        'src/browser.ts',
+        'src/commands/**',
+        'src/health.ts',
+      ],
       thresholds: {
         lines: 80,
         functions: 80,
