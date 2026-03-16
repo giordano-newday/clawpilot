@@ -21,25 +21,55 @@ export function registerAuthCommands(program: Command): void {
   auth
     .command('status')
     .description('Check if browser session is valid')
-    .action(async () => {
+    .option('--validate', 'Check whether the saved session is still active', false)
+    .action(async (options: { validate: boolean }) => {
       const manager = new BrowserManager();
       if (!manager.hasSession()) {
         output(
           success({
             authenticated: false,
-            session_age_hours: null,
-            message: 'No session found. Run: clawpilot-browser auth login',
+            message: 'No browser session found. Run: clawpilot-browser auth login',
           }),
         );
         return;
       }
-      output(
-        success({
-          authenticated: true,
-          session_age_hours: null,
-          message: "Session found. Use 'health full' for deep validation.",
-        }),
-      );
+      if (!options.validate) {
+        output(
+          success({
+            authenticated: true,
+            validated: false,
+            message: 'Session files exist. Use --validate to check if session is still active.',
+          }),
+        );
+        return;
+      }
+
+      try {
+        const result = await manager.validateSession();
+        const message = result.teamsAccessible && result.outlookAccessible
+          ? 'Session is valid. Teams and Outlook are accessible.'
+          : result.teamsAccessible
+            ? 'Session is valid. Teams is accessible (Outlook check failed).'
+            : result.outlookAccessible
+              ? 'Session is valid. Outlook is accessible (Teams check failed).'
+              : 'Session has expired. Run: clawpilot-browser auth login';
+        output(
+          success({
+            authenticated: result.valid,
+            validated: true,
+            teamsAccessible: result.teamsAccessible,
+            outlookAccessible: result.outlookAccessible,
+            message,
+          }),
+        );
+      } catch (err) {
+        output(
+          error(
+            'validation_failed',
+            err instanceof Error ? err.message : 'Session validation failed',
+          ),
+        );
+      }
     });
 
   auth
