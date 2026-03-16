@@ -1,7 +1,6 @@
 import { existsSync, mkdirSync, readdirSync, rmSync } from "node:fs";
 import type { BrowserContext } from "playwright";
-
-const DEFAULT_STATE_DIR = `${process.env.HOME}/.clawpilot/state/browser-state`;
+import { DEFAULT_STATE_DIR } from "./utils/paths.js";
 const LOGIN_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
 
 /** URL patterns that indicate successful Teams authentication */
@@ -27,9 +26,12 @@ export class BrowserManager {
 
   /** Check if a saved session exists on disk */
   hasSession(): boolean {
-    if (!existsSync(this.stateDir)) return false;
-    const files = readdirSync(this.stateDir);
-    return files.length > 0;
+    try {
+      const files = readdirSync(this.stateDir);
+      return files.length > 0;
+    } catch {
+      return false;
+    }
   }
 
   /** Clear the saved session */
@@ -50,19 +52,18 @@ export class BrowserManager {
       viewport: { width: 1280, height: 800 },
     });
 
-    const page = context.pages()[0] || (await context.newPage());
-    await page.goto("https://teams.microsoft.com");
-
     try {
+      const page = context.pages()[0] || (await context.newPage());
+      await page.goto("https://teams.microsoft.com");
       await page.waitForURL(
         (url) => TEAMS_AUTHENTICATED_PATTERNS.some((p) => p.test(url.href)),
         { timeout: LOGIN_TIMEOUT_MS },
       );
-      await context.close();
       return { success: true, message: "Logged in successfully. Session saved." };
     } catch {
-      await context.close();
       return { success: false, message: "Login timed out after 5 minutes." };
+    } finally {
+      await context.close();
     }
   }
 

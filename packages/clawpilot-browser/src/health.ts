@@ -2,6 +2,7 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { existsSync, readdirSync, statSync } from "node:fs";
 import { success, error, type CLIResponse, type ErrorResponse } from "./utils/output.js";
+import { DEFAULT_STATE_DIR } from "./utils/paths.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -21,8 +22,6 @@ export interface FullHealthData extends InstallCheckData, SessionCheckData {
   teams_accessible: boolean | null;
   outlook_accessible: boolean | null;
 }
-
-const DEFAULT_STATE_DIR = `${process.env.HOME}/.clawpilot/state/browser-state`;
 
 export function getStateDir(): string {
   return process.env.CLAWPILOT_BROWSER_STATE_DIR || DEFAULT_STATE_DIR;
@@ -81,33 +80,33 @@ export async function checkInstall(): Promise<CLIResponse<InstallCheckData>> {
 export async function checkSession(stateDir?: string): Promise<CLIResponse<SessionCheckData>> {
   const dir = stateDir || getStateDir();
 
-  if (!existsSync(dir)) {
+  try {
+    const files = readdirSync(dir);
+    if (files.length === 0) {
+      return success<SessionCheckData>({
+        session_exists: false,
+        session_valid: false,
+        session_age_hours: null,
+      });
+    }
+
+    // Session directory exists and has files — calculate age
+    const stat = statSync(dir);
+    const ageMs = Date.now() - stat.mtimeMs;
+    const ageHours = Math.round((ageMs / (1000 * 60 * 60)) * 100) / 100;
+
+    return success<SessionCheckData>({
+      session_exists: true,
+      session_valid: true, // Optimistic — full check does real browser validation
+      session_age_hours: ageHours,
+    });
+  } catch {
     return success<SessionCheckData>({
       session_exists: false,
       session_valid: false,
       session_age_hours: null,
     });
   }
-
-  const files = readdirSync(dir);
-  if (files.length === 0) {
-    return success<SessionCheckData>({
-      session_exists: false,
-      session_valid: false,
-      session_age_hours: null,
-    });
-  }
-
-  // Session directory exists and has files — calculate age
-  const stat = statSync(dir);
-  const ageMs = Date.now() - stat.mtimeMs;
-  const ageHours = Math.round((ageMs / (1000 * 60 * 60)) * 100) / 100;
-
-  return success<SessionCheckData>({
-    session_exists: true,
-    session_valid: true, // Optimistic — full check does real browser validation
-    session_age_hours: ageHours,
-  });
 }
 
 export async function fullHealthCheck(): Promise<CLIResponse<FullHealthData>> {
