@@ -68,4 +68,30 @@ describe('buildSessionMetadataFromCookies', () => {
       lastValidatedResult: 'unknown',
     });
   });
+
+  it('ignores unrelated domains that only contain a relevant fragment', () => {
+    const metadata = buildSessionMetadataFromCookies(
+      [
+        {
+          name: 'unrelated',
+          domain: '.notmicrosoft.com',
+          expires: 1_763_734_800,
+        },
+      ],
+      {
+        createdAt: '2026-03-17T12:00:00.000Z',
+        now: '2026-03-17T12:30:00.000Z',
+      },
+    );
+
+    expect(metadata).toMatchObject({
+      createdAt: '2026-03-17T12:00:00.000Z',
+      updatedAt: '2026-03-17T12:30:00.000Z',
+      expiresAt: null,
+      expirySource: 'no-relevant-cookies',
+      expiryConfidence: 'unknown',
+      lastValidatedAt: null,
+      lastValidatedResult: 'unknown',
+    });
+  });
 });

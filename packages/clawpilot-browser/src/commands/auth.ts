@@ -62,15 +62,11 @@ export function registerAuthCommands(program: Command): void {
             validated: true,
             teamsAccessible: result.teamsAccessible,
             outlookAccessible: result.outlookAccessible,
-            ...(Object.prototype.hasOwnProperty.call(result, 'expiresAt')
-              ? {
-                  expiresAt: result.expiresAt,
-                  expirySource: result.expirySource,
-                  expiryConfidence: result.expiryConfidence,
-                  lastValidatedAt: result.lastValidatedAt,
-                  lastValidatedResult: result.lastValidatedResult,
-                }
-              : {}),
+            expiresAt: result.expiresAt,
+            expirySource: result.expirySource,
+            expiryConfidence: result.expiryConfidence,
+            lastValidatedAt: result.lastValidatedAt,
+            lastValidatedResult: result.lastValidatedResult,
             message,
           }),
         );

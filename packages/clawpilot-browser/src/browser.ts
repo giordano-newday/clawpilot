@@ -7,7 +7,10 @@ import {
   toSessionMetadataSummary,
   withValidationResult,
   writeSessionMetadata,
+  type SessionExpiryConfidence,
+  type SessionExpirySource,
   type SessionMetadataSummary,
+  type SessionValidationResult,
 } from '@clawpilot/browser/session-metadata.js';
 import { DEFAULT_STATE_DIR } from '@clawpilot/browser/utils/paths.js';
 import {
@@ -25,6 +28,17 @@ const TEAMS_AUTHENTICATED_PATTERNS = [
 
 /** URL patterns that indicate a login page (session expired) */
 const LOGIN_PAGE_PATTERNS = [/login\.microsoftonline\.com/, /login\.live\.com/, /adfs\./];
+
+type SessionValidationSummary = SessionMetadataSummary & {
+  valid: boolean;
+  teamsAccessible: boolean;
+  outlookAccessible: boolean;
+  expiresAt: string | null;
+  expirySource: SessionExpirySource | null;
+  expiryConfidence: SessionExpiryConfidence | null;
+  lastValidatedAt: string | null;
+  lastValidatedResult: SessionValidationResult | null;
+};
 
 export class BrowserManager {
   readonly stateDir: string;
@@ -85,16 +99,7 @@ export class BrowserManager {
   }
 
   /** Validate current session by launching headless and checking navigation */
-  async validateSession(): Promise<{
-    valid: boolean;
-    teamsAccessible: boolean;
-    outlookAccessible: boolean;
-    expiresAt: string | null;
-    expirySource: string | null;
-    expiryConfidence: string | null;
-    lastValidatedAt: string | null;
-    lastValidatedResult: string | null;
-  }> {
+  async validateSession(): Promise<SessionValidationSummary> {
     if (!this.hasSession()) {
       return {
         valid: false,

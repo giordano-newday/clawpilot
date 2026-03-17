@@ -15,13 +15,13 @@ const loginMock = vi.fn();
 const clearSessionMock = vi.fn();
 const getSessionMetadataMock = vi.fn();
 
-vi.mock('../utils/output.js', () => ({
+vi.mock('@clawpilot/browser/utils/output.js', () => ({
   output: outputMock,
   success: successMock,
   error: errorMock,
 }));
 
-vi.mock('../browser.js', () => ({
+vi.mock('@clawpilot/browser/browser.js', () => ({
   BrowserManager: vi.fn(() => ({
     hasSession: hasSessionMock,
     validateSession: validateSessionMock,
@@ -32,7 +32,7 @@ vi.mock('../browser.js', () => ({
 }));
 
 async function runAuthStatusCommand(args: string[] = []): Promise<void> {
-  const { registerAuthCommands } = await import('../commands/auth.js');
+  const { registerAuthCommands } = await import('@clawpilot/browser/commands/auth.js');
   const program = new Command();
   registerAuthCommands(program);
 

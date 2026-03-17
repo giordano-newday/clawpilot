@@ -5,6 +5,9 @@ import {
   isPersistedSessionStateFile,
   readSessionMetadata,
   toSessionMetadataSummary,
+  type SessionExpiryConfidence,
+  type SessionExpirySource,
+  type SessionValidationResult,
 } from '@clawpilot/browser/session-metadata.js';
 import {
   error,
@@ -27,10 +30,10 @@ export interface SessionCheckData {
   session_valid: boolean;
   session_age_hours: number | null;
   session_expires_at: string | null;
-  session_expiry_source: string | null;
-  session_expiry_confidence: string | null;
+  session_expiry_source: SessionExpirySource | null;
+  session_expiry_confidence: SessionExpiryConfidence | null;
   last_validated_at: string | null;
-  last_validated_result: string | null;
+  last_validated_result: SessionValidationResult | null;
 }
 
 export interface FullHealthData extends InstallCheckData, SessionCheckData {

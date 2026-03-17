@@ -45,8 +45,10 @@ export function isPersistedSessionStateFile(fileName: string): boolean {
 }
 
 function isRelevantCookie(cookie: SessionCookieLike): boolean {
-  const domain = cookie.domain?.toLowerCase() ?? '';
-  return RELEVANT_COOKIE_DOMAINS.some((fragment) => domain.includes(fragment));
+  const domain = (cookie.domain?.toLowerCase() ?? '').replace(/^\.+/, '');
+  return RELEVANT_COOKIE_DOMAINS.some(
+    (fragment) => domain === fragment || domain.endsWith(`.${fragment}`),
+  );
 }
 
 function toIsoDate(expiresUnixSeconds: number): string {
