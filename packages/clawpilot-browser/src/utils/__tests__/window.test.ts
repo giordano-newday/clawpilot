@@ -9,10 +9,7 @@ describe('createBackgroundWindowLaunchOptions', () => {
     expect(options.headless).toBe(false);
     expect(options.viewport).toBeNull();
     expect(options.args).toEqual(
-      expect.arrayContaining([
-        '--window-size=480,320',
-        '--window-position=3000,3000',
-      ]),
+      expect.arrayContaining(['--window-size=480,320', '--window-position=3000,3000']),
     );
   });
 });

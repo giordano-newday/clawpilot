@@ -2,10 +2,7 @@ import { Readability } from '@mozilla/readability';
 import { parseHTML } from 'linkedom';
 import type { BrowserContext } from 'playwright';
 import { DEFAULT_STATE_DIR } from './utils/paths.js';
-import {
-  createBackgroundWindowLaunchOptions,
-  makeWindowUnobtrusive,
-} from './utils/window.js';
+import { createBackgroundWindowLaunchOptions, makeWindowUnobtrusive } from './utils/window.js';
 
 export interface SearchResult {
   title: string;
