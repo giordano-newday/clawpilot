@@ -8,9 +8,12 @@ import {
   withValidationResult,
   writeSessionMetadata,
   type SessionMetadataSummary,
-} from './session-metadata.js';
-import { DEFAULT_STATE_DIR } from './utils/paths.js';
-import { createBackgroundWindowLaunchOptions, makeWindowUnobtrusive } from './utils/window.js';
+} from '@clawpilot/browser/session-metadata.js';
+import { DEFAULT_STATE_DIR } from '@clawpilot/browser/utils/paths.js';
+import {
+  createBackgroundWindowLaunchOptions,
+  makeWindowUnobtrusive,
+} from '@clawpilot/browser/utils/window.js';
 const LOGIN_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
 
 /** URL patterns that indicate successful Teams authentication */

@@ -5,9 +5,14 @@ import {
   isPersistedSessionStateFile,
   readSessionMetadata,
   toSessionMetadataSummary,
-} from './session-metadata.js';
-import { success, error, type CLIResponse, type ErrorResponse } from './utils/output.js';
-import { DEFAULT_STATE_DIR } from './utils/paths.js';
+} from '@clawpilot/browser/session-metadata.js';
+import {
+  error,
+  success,
+  type CLIResponse,
+  type ErrorResponse,
+} from '@clawpilot/browser/utils/output.js';
+import { DEFAULT_STATE_DIR } from '@clawpilot/browser/utils/paths.js';
 
 const execFileAsync = promisify(execFile);
 

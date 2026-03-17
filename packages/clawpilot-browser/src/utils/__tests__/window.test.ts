@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { Page } from 'playwright';
-import { createBackgroundWindowLaunchOptions, makeWindowUnobtrusive } from '../window.js';
+import {
+  createBackgroundWindowLaunchOptions,
+  makeWindowUnobtrusive,
+} from '@clawpilot/browser/utils/window.js';
 
 describe('createBackgroundWindowLaunchOptions', () => {
   it('creates a headed tiny offscreen browser configuration', () => {

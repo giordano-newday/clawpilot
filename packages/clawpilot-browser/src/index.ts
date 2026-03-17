@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-import { registerHealthCommands } from './commands/health.js';
-import { registerAuthCommands } from './commands/auth.js';
-import { registerWebCommands } from './commands/web.js';
+import { registerAuthCommands } from '@clawpilot/browser/commands/auth.js';
+import { registerHealthCommands } from '@clawpilot/browser/commands/health.js';
+import { registerWebCommands } from '@clawpilot/browser/commands/web.js';
 
 const program = new Command();
 

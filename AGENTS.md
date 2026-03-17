@@ -15,6 +15,7 @@
   - generated output belongs in `dist`, `coverage`, and `docs/reports`
   - do not hand-edit generated artifacts unless the task explicitly requires it
 - Prefer deleting dead code or obsolete variants over preserving duplicated legacy paths.
+- Never use relative imports between source modules inside a package. Import through the package root alias instead (for example `@clawpilot/browser/...`), not `./...` or `../...`.
 - When adding local instructions in nested `AGENTS.md` files, inherit this file and only add directory-specific guidance. Do not restate the same global rules with different wording.
 
 ## Repository-wide conventions

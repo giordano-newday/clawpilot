@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { checkInstall, checkSession } from '../health.js';
+import { checkInstall, checkSession } from '@clawpilot/browser/health.js';
 
 describe('checkSession', () => {
   it('returns session_exists:false when state dir does not exist', async () => {

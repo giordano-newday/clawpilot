@@ -2,7 +2,7 @@ import { describe, it, expect, afterEach } from 'vitest';
 import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { BrowserManager } from '../browser.js';
+import { BrowserManager } from '@clawpilot/browser/browser.js';
 
 describe('BrowserManager', () => {
   let tempDir: string | undefined;

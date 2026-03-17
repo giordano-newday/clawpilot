@@ -5,6 +5,7 @@ Inherit `/AGENTS.md`.
 ## Package-specific instructions
 
 - Keep this package focused on browser-facing capabilities only: auth, health, Teams/Outlook/web automation, and CLI wiring.
+- Use package-root imports everywhere in this package: `@clawpilot/browser/...`. Do not use relative imports between files under `src/`.
 - Reuse shared primitives aggressively:
   - JSON responses go through `src/utils/output.ts`
   - browser state paths go through `src/utils/paths.ts`

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseSearchResults, extractReadableContent, fetchPage } from '../web.js';
+import { parseSearchResults, extractReadableContent, fetchPage } from '@clawpilot/browser/web.js';
 
 describe('parseSearchResults', () => {
   it('extracts title, url, snippet from DuckDuckGo HTML structure', () => {

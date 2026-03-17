@@ -1,6 +1,6 @@
 import { Command } from 'commander';
-import { output, success, error } from '../utils/output.js';
-import { BrowserManager } from '../browser.js';
+import { BrowserManager } from '@clawpilot/browser/browser.js';
+import { error, output, success } from '@clawpilot/browser/utils/output.js';
 
 export function registerAuthCommands(program: Command): void {
   const auth = program.command('auth').description('Manage browser authentication');

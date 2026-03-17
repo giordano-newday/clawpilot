@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildSessionMetadataFromCookies } from '../session-metadata.js';
+import { buildSessionMetadataFromCookies } from '@clawpilot/browser/session-metadata.js';
 
 describe('buildSessionMetadataFromCookies', () => {
   it('stores the earliest relevant finite cookie expiry conservatively', () => {
