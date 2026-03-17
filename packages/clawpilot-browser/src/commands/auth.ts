@@ -34,10 +34,12 @@ export function registerAuthCommands(program: Command): void {
         return;
       }
       if (!options.validate) {
+        const metadata = manager.getSessionMetadata();
         output(
           success({
             authenticated: true,
             validated: false,
+            ...metadata,
             message: 'Session files exist. Use --validate to check if session is still active.',
           }),
         );
@@ -60,6 +62,15 @@ export function registerAuthCommands(program: Command): void {
             validated: true,
             teamsAccessible: result.teamsAccessible,
             outlookAccessible: result.outlookAccessible,
+            ...(Object.prototype.hasOwnProperty.call(result, 'expiresAt')
+              ? {
+                  expiresAt: result.expiresAt,
+                  expirySource: result.expirySource,
+                  expiryConfidence: result.expiryConfidence,
+                  lastValidatedAt: result.lastValidatedAt,
+                  lastValidatedResult: result.lastValidatedResult,
+                }
+              : {}),
             message,
           }),
         );

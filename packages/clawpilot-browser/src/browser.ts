@@ -1,10 +1,16 @@
 import { existsSync, mkdirSync, readdirSync, rmSync } from 'node:fs';
 import type { BrowserContext } from 'playwright';
-import { DEFAULT_STATE_DIR } from './utils/paths.js';
 import {
-  createBackgroundWindowLaunchOptions,
-  makeWindowUnobtrusive,
-} from './utils/window.js';
+  buildSessionMetadataFromCookies,
+  isPersistedSessionStateFile,
+  readSessionMetadata,
+  toSessionMetadataSummary,
+  withValidationResult,
+  writeSessionMetadata,
+  type SessionMetadataSummary,
+} from './session-metadata.js';
+import { DEFAULT_STATE_DIR } from './utils/paths.js';
+import { createBackgroundWindowLaunchOptions, makeWindowUnobtrusive } from './utils/window.js';
 const LOGIN_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
 
 /** URL patterns that indicate successful Teams authentication */
@@ -27,11 +33,15 @@ export class BrowserManager {
   /** Check if a saved session exists on disk */
   hasSession(): boolean {
     try {
-      const files = readdirSync(this.stateDir);
+      const files = readdirSync(this.stateDir).filter(isPersistedSessionStateFile);
       return files.length > 0;
     } catch {
       return false;
     }
+  }
+
+  getSessionMetadata(): SessionMetadataSummary {
+    return toSessionMetadataSummary(readSessionMetadata(this.stateDir));
   }
 
   /** Clear the saved session */
@@ -58,6 +68,11 @@ export class BrowserManager {
       await page.waitForURL((url) => TEAMS_AUTHENTICATED_PATTERNS.some((p) => p.test(url.href)), {
         timeout: LOGIN_TIMEOUT_MS,
       });
+      const existingMetadata = readSessionMetadata(this.stateDir);
+      const metadata = buildSessionMetadataFromCookies(await context.cookies(), {
+        createdAt: existingMetadata?.createdAt,
+      });
+      writeSessionMetadata(this.stateDir, metadata);
       return { success: true, message: 'Logged in successfully. Session saved.' };
     } catch {
       return { success: false, message: 'Login timed out after 5 minutes.' };
@@ -71,9 +86,19 @@ export class BrowserManager {
     valid: boolean;
     teamsAccessible: boolean;
     outlookAccessible: boolean;
+    expiresAt: string | null;
+    expirySource: string | null;
+    expiryConfidence: string | null;
+    lastValidatedAt: string | null;
+    lastValidatedResult: string | null;
   }> {
     if (!this.hasSession()) {
-      return { valid: false, teamsAccessible: false, outlookAccessible: false };
+      return {
+        valid: false,
+        teamsAccessible: false,
+        outlookAccessible: false,
+        ...this.getSessionMetadata(),
+      };
     }
 
     const { chromium } = await import('playwright');
@@ -106,15 +131,31 @@ export class BrowserManager {
         outlookOk = false;
       }
 
+      const existingMetadata = readSessionMetadata(this.stateDir);
+      const metadata = withValidationResult(
+        buildSessionMetadataFromCookies(await context.cookies(), {
+          createdAt: existingMetadata?.createdAt,
+        }),
+        {
+          valid: teamsOk || outlookOk,
+        },
+      );
+      writeSessionMetadata(this.stateDir, metadata);
       await context.close();
       return {
         valid: teamsOk || outlookOk,
         teamsAccessible: teamsOk,
         outlookAccessible: outlookOk,
+        ...toSessionMetadataSummary(metadata),
       };
     } catch {
       if (context) await context.close();
-      return { valid: false, teamsAccessible: false, outlookAccessible: false };
+      return {
+        valid: false,
+        teamsAccessible: false,
+        outlookAccessible: false,
+        ...this.getSessionMetadata(),
+      };
     }
   }
 }

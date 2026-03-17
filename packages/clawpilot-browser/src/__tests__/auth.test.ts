@@ -13,6 +13,7 @@ const hasSessionMock = vi.fn();
 const validateSessionMock = vi.fn();
 const loginMock = vi.fn();
 const clearSessionMock = vi.fn();
+const getSessionMetadataMock = vi.fn();
 
 vi.mock('../utils/output.js', () => ({
   output: outputMock,
@@ -26,6 +27,7 @@ vi.mock('../browser.js', () => ({
     validateSession: validateSessionMock,
     login: loginMock,
     clearSession: clearSessionMock,
+    getSessionMetadata: getSessionMetadataMock,
   })),
 }));
 
@@ -47,6 +49,7 @@ describe('registerAuthCommands', () => {
     validateSessionMock.mockReset();
     loginMock.mockReset();
     clearSessionMock.mockReset();
+    getSessionMetadataMock.mockReset();
   });
 
   it('reports no browser session when no session files exist', async () => {
@@ -70,6 +73,13 @@ describe('registerAuthCommands', () => {
 
   it('reports session files exist without validation by default', async () => {
     hasSessionMock.mockReturnValue(true);
+    getSessionMetadataMock.mockReturnValue({
+      expiresAt: '2026-03-18T09:00:00.000Z',
+      expirySource: 'cookie-expiry',
+      expiryConfidence: 'high',
+      lastValidatedAt: null,
+      lastValidatedResult: 'unknown',
+    });
 
     await runAuthStatusCommand();
 
@@ -77,6 +87,11 @@ describe('registerAuthCommands', () => {
     expect(successMock).toHaveBeenCalledWith({
       authenticated: true,
       validated: false,
+      expiresAt: '2026-03-18T09:00:00.000Z',
+      expirySource: 'cookie-expiry',
+      expiryConfidence: 'high',
+      lastValidatedAt: null,
+      lastValidatedResult: 'unknown',
       message: 'Session files exist. Use --validate to check if session is still active.',
     });
     expect(outputMock).toHaveBeenCalledWith({
@@ -84,6 +99,11 @@ describe('registerAuthCommands', () => {
       data: {
         authenticated: true,
         validated: false,
+        expiresAt: '2026-03-18T09:00:00.000Z',
+        expirySource: 'cookie-expiry',
+        expiryConfidence: 'high',
+        lastValidatedAt: null,
+        lastValidatedResult: 'unknown',
         message: 'Session files exist. Use --validate to check if session is still active.',
       },
     });
@@ -95,6 +115,11 @@ describe('registerAuthCommands', () => {
       valid: true,
       teamsAccessible: true,
       outlookAccessible: true,
+      expiresAt: '2026-03-18T09:00:00.000Z',
+      expirySource: 'cookie-expiry',
+      expiryConfidence: 'medium',
+      lastValidatedAt: '2026-03-17T12:45:00.000Z',
+      lastValidatedResult: 'valid',
     });
 
     await runAuthStatusCommand(['--validate']);
@@ -105,6 +130,11 @@ describe('registerAuthCommands', () => {
       validated: true,
       teamsAccessible: true,
       outlookAccessible: true,
+      expiresAt: '2026-03-18T09:00:00.000Z',
+      expirySource: 'cookie-expiry',
+      expiryConfidence: 'medium',
+      lastValidatedAt: '2026-03-17T12:45:00.000Z',
+      lastValidatedResult: 'valid',
       message: 'Session is valid. Teams and Outlook are accessible.',
     });
     expect(outputMock).toHaveBeenCalledWith({
@@ -114,6 +144,11 @@ describe('registerAuthCommands', () => {
         validated: true,
         teamsAccessible: true,
         outlookAccessible: true,
+        expiresAt: '2026-03-18T09:00:00.000Z',
+        expirySource: 'cookie-expiry',
+        expiryConfidence: 'medium',
+        lastValidatedAt: '2026-03-17T12:45:00.000Z',
+        lastValidatedResult: 'valid',
         message: 'Session is valid. Teams and Outlook are accessible.',
       },
     });

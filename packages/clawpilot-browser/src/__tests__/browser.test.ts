@@ -32,6 +32,13 @@ describe('BrowserManager', () => {
     expect(manager.hasSession()).toBe(true);
   });
 
+  it('reports hasSession=false when only session metadata exists', () => {
+    tempDir = mkdtempSync(join(tmpdir(), 'clawpilot-test-'));
+    writeFileSync(join(tempDir, 'session-metadata.json'), '{}');
+    const manager = new BrowserManager(tempDir);
+    expect(manager.hasSession()).toBe(false);
+  });
+
   it('clearSession removes the state directory', () => {
     tempDir = mkdtempSync(join(tmpdir(), 'clawpilot-test-'));
     writeFileSync(join(tempDir, 'cookies.json'), '{}');
