@@ -26,4 +26,21 @@ export default tseslint.config(
       '@typescript-eslint/no-explicit-any': 'error',
     },
   },
+  {
+    files: ['packages/clawpilot-browser/src/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['./*', '../*', '../../*', '../../../*'],
+              message:
+                'Use package-root imports via @clawpilot/browser/... instead of relative imports.',
+            },
+          ],
+        },
+      ],
+    },
+  },
 );

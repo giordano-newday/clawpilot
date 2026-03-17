@@ -15,6 +15,7 @@
   - generated output belongs in `dist`, `coverage`, and `docs/reports`
   - do not hand-edit generated artifacts unless the task explicitly requires it
 - Prefer deleting dead code or obsolete variants over preserving duplicated legacy paths.
+- Never use relative imports between source modules inside a package. Import through the package root alias instead (for example `@clawpilot/browser/...`), not `./...` or `../...`.
 - When adding local instructions in nested `AGENTS.md` files, inherit this file and only add directory-specific guidance. Do not restate the same global rules with different wording.
 
 ## Repository-wide conventions
@@ -22,4 +23,5 @@
 - Package names, paths, and CLI names stay lowercase (`clawpilot`); human-facing product naming is `Clawpilot`.
 - Keep `auth login` visible for manual sign-in. Background/non-login browser work should stay unobtrusive by default.
 - Reuse existing helpers for browser state, output formatting, and window behavior before adding new browser utilities.
+- Always work through a pull request for code changes: create or update a branch, open or update the PR, explicitly request Copilot review if it was not auto-requested, address review comments one by one, and reply to each review comment one by one with the resolution or rationale.
 - If a new module needs its own `AGENTS.md`, keep it short, specific, and additive to this root file.

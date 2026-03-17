@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { success, error, formatOutput, output } from '../output.js';
+import { success, error, formatOutput, output } from '@clawpilot/browser/utils/output.js';
 
 describe('output helpers', () => {
   describe('success', () => {

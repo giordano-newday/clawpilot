@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { Page } from 'playwright';
-import { createBackgroundWindowLaunchOptions, makeWindowUnobtrusive } from '../window.js';
+import {
+  createBackgroundWindowLaunchOptions,
+  makeWindowUnobtrusive,
+} from '@clawpilot/browser/utils/window.js';
 
 describe('createBackgroundWindowLaunchOptions', () => {
   it('creates a headed tiny offscreen browser configuration', () => {
@@ -9,10 +12,7 @@ describe('createBackgroundWindowLaunchOptions', () => {
     expect(options.headless).toBe(false);
     expect(options.viewport).toBeNull();
     expect(options.args).toEqual(
-      expect.arrayContaining([
-        '--window-size=480,320',
-        '--window-position=3000,3000',
-      ]),
+      expect.arrayContaining(['--window-size=480,320', '--window-position=3000,3000']),
     );
   });
 });

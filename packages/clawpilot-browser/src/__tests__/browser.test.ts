@@ -2,7 +2,7 @@ import { describe, it, expect, afterEach } from 'vitest';
 import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { BrowserManager } from '../browser.js';
+import { BrowserManager } from '@clawpilot/browser/browser.js';
 
 describe('BrowserManager', () => {
   let tempDir: string | undefined;
@@ -30,6 +30,13 @@ describe('BrowserManager', () => {
     writeFileSync(join(tempDir, 'cookies.json'), '{}');
     const manager = new BrowserManager(tempDir);
     expect(manager.hasSession()).toBe(true);
+  });
+
+  it('reports hasSession=false when only session metadata exists', () => {
+    tempDir = mkdtempSync(join(tmpdir(), 'clawpilot-test-'));
+    writeFileSync(join(tempDir, 'session-metadata.json'), '{}');
+    const manager = new BrowserManager(tempDir);
+    expect(manager.hasSession()).toBe(false);
   });
 
   it('clearSession removes the state directory', () => {

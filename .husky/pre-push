@@ -1,14 +1,6 @@
 #!/bin/sh
 
-if [ -n "$SKIP_PRE_PUSH_TESTS" ]; then
-  echo "SKIP_PRE_PUSH_TESTS is set; skipping test run."
-  exit 0
-fi
+set -e
 
-pnpm test
-TEST_STATUS=$?
-
-if [ "$TEST_STATUS" -ne 0 ]; then
-  echo "Tests failed (exit code $TEST_STATUS). Aborting push."
-  exit "$TEST_STATUS"
-fi
+echo "Running full verification before push..."
+pnpm verify

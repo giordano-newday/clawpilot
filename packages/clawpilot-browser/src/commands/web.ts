@@ -1,6 +1,6 @@
 import type { Command } from 'commander';
-import { fetchPage, searchWeb } from '../web.js';
-import { error, output, success } from '../utils/output.js';
+import { fetchPage, searchWeb } from '@clawpilot/browser/web.js';
+import { error, output, success } from '@clawpilot/browser/utils/output.js';
 
 interface SearchCommandOptions {
   maxResults: string;

@@ -70,6 +70,12 @@ pnpm test:watch
 pnpm lint
 ```
 
+## Project-local agent skills
+
+- `.agents/skills/typescript-pro` vendors a strong TypeScript specialist skill into the repo.
+- It gives future agent sessions project-local guidance on strict typing, type guards, utility types, tsconfig choices, and type-first API design.
+- Upstream source: `Jeffallan/claude-skills` (`skills/typescript-pro`, MIT).
+
 ## Browser CLI Commands
 
 ```bash
@@ -85,6 +91,11 @@ node packages/clawpilot-browser/dist/index.js auth status --validate
 # Run the end-to-end manual browser QA script
 packages/clawpilot-browser/scripts/manual-test-web.sh
 ```
+
+`auth status`, `auth status --validate`, and `health check-session` now include stored
+session expiry hints plus the last live validation timestamp/result. Expiry remains
+best-effort because some Microsoft cookies are session-only or can be invalidated
+server-side before their cookie expiry.
 
 ## Architecture
 

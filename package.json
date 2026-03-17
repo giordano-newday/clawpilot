@@ -9,6 +9,7 @@
     "lint": "eslint . && pnpm -r lint",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "verify": "pnpm format:check && pnpm lint && pnpm build && pnpm test",
     "prepare": "husky"
   },
   "lint-staged": {

@@ -4,6 +4,10 @@
   "private": true,
   "description": "Playwright-based browser CLI for Clawpilot",
   "type": "module",
+  "exports": {
+    ".": "./dist/index.js",
+    "./*": "./dist/*"
+  },
   "bin": {
     "clawpilot-browser": "./dist/index.js"
   },

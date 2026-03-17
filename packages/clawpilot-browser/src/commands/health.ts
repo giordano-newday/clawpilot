@@ -1,6 +1,6 @@
 import { Command } from 'commander';
-import { output } from '../utils/output.js';
-import { checkInstall, checkSession, fullHealthCheck } from '../health.js';
+import { checkInstall, checkSession, fullHealthCheck } from '@clawpilot/browser/health.js';
+import { output } from '@clawpilot/browser/utils/output.js';
 
 export function registerHealthCommands(program: Command): void {
   const health = program.command('health').description('Check browser availability and health');
