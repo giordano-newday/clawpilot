@@ -85,11 +85,20 @@ node packages/clawpilot-browser/dist/index.js web search "your query" [--max-res
 # Fetch and extract content from a URL
 node packages/clawpilot-browser/dist/index.js web fetch "https://example.com" [--readability]
 
+# List Teams chats and channels (default page size: 20)
+node packages/clawpilot-browser/dist/index.js teams list [--limit 20] [--offset 0] [--json]
+
+# Read a specific Teams chat/channel by id from `teams list`
+node packages/clawpilot-browser/dist/index.js teams read "<id>" [--limit 20] [--offset 0] [--json]
+
 # Validate whether the saved Office session still works
 node packages/clawpilot-browser/dist/index.js auth status --validate
 
 # Run the end-to-end manual browser QA script
 packages/clawpilot-browser/scripts/manual-test-web.sh
+
+# Run the Teams discovery/read manual QA script
+packages/clawpilot-browser/scripts/manual-test-teams.sh
 ```
 
 `auth status`, `auth status --validate`, and `health check-session` now include stored
