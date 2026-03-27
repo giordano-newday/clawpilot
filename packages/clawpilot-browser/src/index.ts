@@ -3,6 +3,7 @@
 import { Command } from 'commander';
 import { registerAuthCommands } from '@clawpilot/browser/commands/auth.js';
 import { registerHealthCommands } from '@clawpilot/browser/commands/health.js';
+import { registerTeamsCommands } from '@clawpilot/browser/commands/teams.js';
 import { registerWebCommands } from '@clawpilot/browser/commands/web.js';
 
 const program = new Command();
@@ -14,6 +15,7 @@ program
 
 registerHealthCommands(program);
 registerAuthCommands(program);
+registerTeamsCommands(program);
 registerWebCommands(program);
 
 program.parse();

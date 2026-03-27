@@ -24,6 +24,7 @@ const TEAMS_AUTHENTICATED_PATTERNS = [
   /teams\.microsoft\.com\/_#/,
   /teams\.microsoft\.com\/v2/,
   /teams\.microsoft\.com\/\?/,
+  /teams\.cloud\.microsoft\//,
 ];
 
 /** URL patterns that indicate a login page (session expired) */
@@ -39,6 +40,10 @@ type SessionValidationSummary = SessionMetadataSummary & {
   lastValidatedAt: string | null;
   lastValidatedResult: SessionValidationResult | null;
 };
+
+export function isTeamsAuthenticatedUrl(url: string): boolean {
+  return TEAMS_AUTHENTICATED_PATTERNS.some((pattern) => pattern.test(url));
+}
 
 export class BrowserManager {
   readonly stateDir: string;
@@ -82,7 +87,7 @@ export class BrowserManager {
     try {
       const page = context.pages()[0] || (await context.newPage());
       await page.goto('https://teams.microsoft.com');
-      await page.waitForURL((url) => TEAMS_AUTHENTICATED_PATTERNS.some((p) => p.test(url.href)), {
+      await page.waitForURL((url) => isTeamsAuthenticatedUrl(url.href), {
         timeout: LOGIN_TIMEOUT_MS,
       });
       const existingMetadata = readSessionMetadata(this.stateDir);
