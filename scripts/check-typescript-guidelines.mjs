@@ -49,7 +49,15 @@ function parseArgs(argv) {
 }
 
 function getStagedTypeScriptFiles() {
-  const output = gitInRepo(['diff', '--cached', '--name-only', '--diff-filter=ACMR', '--', '*.ts', '*.tsx']);
+  const output = gitInRepo([
+    'diff',
+    '--cached',
+    '--name-only',
+    '--diff-filter=ACMR',
+    '--',
+    '*.ts',
+    '*.tsx',
+  ]);
   return output
     .split('\n')
     .map((value) => value.trim())
@@ -203,7 +211,8 @@ function inspectFile(file, content) {
       file: file.relativePath,
       line: match.line,
       rule: 'empty-catch',
-      message: 'Empty catch blocks hide failure paths; document why they are safe or surface the error.',
+      message:
+        'Empty catch blocks hide failure paths; document why they are safe or surface the error.',
     });
   }
 
@@ -216,7 +225,9 @@ function formatIssue(issue) {
 
 const args = parseArgs(process.argv.slice(2));
 const requestedFiles =
-  args.files.length > 0 ? args.files.map(normalizeFileInput).filter(Boolean) : getStagedTypeScriptFiles().map(normalizeFileInput);
+  args.files.length > 0
+    ? args.files.map(normalizeFileInput).filter(Boolean)
+    : getStagedTypeScriptFiles().map(normalizeFileInput);
 
 if (requestedFiles.length === 0) {
   console.log('TypeScript guideline check: no matching files to inspect.');
