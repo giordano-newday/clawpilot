@@ -142,7 +142,11 @@ export function normalizeTeamsTargetId(href: string): { id: string; kind: TeamsI
   }
 
   if (url.pathname.startsWith('/l/chat/')) {
-    return { id: `${url.pathname}${url.search}`, kind: 'chat' };
+    const conversationId = getTeamsConversationIdFromTarget(`${url.pathname}${url.search}`);
+    if (!conversationId) {
+      return null;
+    }
+    return { id: buildTeamsChatPath(conversationId), kind: 'chat' };
   }
 
   if (url.pathname.startsWith('/l/channel/')) {
@@ -179,9 +183,8 @@ export function buildTeamsReadResult(
   messages: TeamsMessage[],
   options: TeamsListOptions,
 ): TeamsReadResult {
-  const sorted = [...messages].sort((left, right) => left.id.localeCompare(right.id));
-  const paged = sorted.slice(options.offset, options.offset + options.limit);
-  const total = sorted.length;
+  const paged = messages.slice(options.offset, options.offset + options.limit);
+  const total = messages.length;
   const nextOffset = options.offset + options.limit < total ? options.offset + options.limit : null;
 
   return {
@@ -311,12 +314,19 @@ export async function settleTeamsAsyncAction<T>(
   timeoutMs: number,
   onTimeout: () => T,
 ): Promise<T> {
-  return Promise.race([
-    action(),
-    new Promise<T>((resolve) => {
-      setTimeout(() => resolve(onTimeout()), timeoutMs);
-    }),
-  ]);
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  const actionPromise = action();
+  const timeoutPromise = new Promise<T>((resolve) => {
+    timeoutId = setTimeout(() => resolve(onTimeout()), timeoutMs);
+  });
+
+  try {
+    return await Promise.race([actionPromise, timeoutPromise]);
+  } finally {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+  }
 }
 
 export async function settleTeamsInteractiveLoginTrigger(
@@ -344,12 +354,25 @@ const TEAMS_TOKEN_AUDIENCES = {
 export function extractTeamsTokensFromMsalCache(
   cache: Record<string, TeamsMsalCacheEntry>,
 ): TeamsTokenSet | null {
-  const tokens: Partial<TeamsTokenSet> = {};
+  const nowEpochSeconds = Math.floor(Date.now() / 1000);
+  const tokens: Partial<
+    Record<keyof TeamsTokenSet, { secret: string; cachedAt: number; expiresAt: number }>
+  > = {};
 
   for (const entry of Object.values(cache)) {
+    const expiresAt = parseEpochSeconds(entry.expires_on) ?? 0;
+    if (expiresAt <= nowEpochSeconds) {
+      continue;
+    }
+
+    const cachedAt = parseEpochSeconds(entry.cached_at) ?? 0;
     for (const [key, audience] of Object.entries(TEAMS_TOKEN_AUDIENCES)) {
-      if (entry.target.includes(audience)) {
-        tokens[key as keyof TeamsTokenSet] = entry.secret;
+      const tokenKey = key as keyof TeamsTokenSet;
+      if (
+        entry.target.includes(audience) &&
+        shouldReplaceMsalToken(tokens[tokenKey], cachedAt, expiresAt)
+      ) {
+        tokens[tokenKey] = { secret: entry.secret, cachedAt, expiresAt };
       }
     }
   }
@@ -358,7 +381,11 @@ export function extractTeamsTokensFromMsalCache(
     return null;
   }
 
-  return tokens as TeamsTokenSet;
+  return {
+    skype: tokens.skype.secret,
+    chatSvcAgg: tokens.chatSvcAgg.secret,
+    chatSvc: tokens.chatSvc.secret,
+  };
 }
 
 function stripHtml(html: string): string {
@@ -394,10 +421,10 @@ export function parseTeamsChatListResponse(
           c.type === 'Conversation',
       )
       .map((c, i) => ({
-        id: c.id,
+        id: buildTeamsChatPath(c.id),
         kind: (c.threadProperties?.threadType === 'channel' ? 'channel' : 'chat') as TeamsItemKind,
         title: c.threadProperties?.topic ?? c.id,
-        path: `/l/chat/${encodeURIComponent(c.id)}`,
+        path: buildTeamsChatPath(c.id),
         preview: c.lastMessage?.content ? stripHtml(c.lastMessage.content) : null,
         order: i,
       }));
@@ -407,13 +434,34 @@ export function parseTeamsChatListResponse(
   return raw
     .filter((c) => !c.hidden)
     .map((c, i) => ({
-      id: c.id,
+      id: buildTeamsChatPath(c.id),
       kind: 'chat' as TeamsItemKind,
       title: c.title ?? (c.members?.map((m) => m.objectId).join(', ') || 'Unnamed chat'),
-      path: `/l/chat/${encodeURIComponent(c.id)}`,
+      path: buildTeamsChatPath(c.id),
       preview: c.lastMessage?.content ? stripHtml(c.lastMessage.content) : null,
       order: i,
     }));
+}
+
+export function mergeTeamsListCandidates(
+  preferred: TeamsListCandidate[],
+  fallback: TeamsListCandidate[],
+): TeamsListCandidate[] {
+  const merged = preferred.map((item) => ({ ...item }));
+  const seen = new Set(merged.map((item) => `${item.kind}:${item.id}`));
+  let nextOrder = merged.reduce((maxOrder, item) => Math.max(maxOrder, item.order), -1) + 1;
+
+  for (const item of fallback) {
+    const key = `${item.kind}:${item.id}`;
+    if (seen.has(key)) {
+      continue;
+    }
+
+    merged.push({ ...item, order: nextOrder++ });
+    seen.add(key);
+  }
+
+  return merged;
 }
 
 const USER_MESSAGE_TYPES = new Set(['Text', 'RichText/Html', 'RichText']);
@@ -537,12 +585,7 @@ export async function listTeamsDirect(
   options: TeamsListOptions,
   fetchImpl: FetchFn = globalThis.fetch,
 ): Promise<TeamsListResult> {
-  const authz = await fetchTeamsAuthzBootstrap(tokens.skype, fetchImpl);
-  const raw = (await fetchTeamsChatList(
-    { token: tokens.chatSvcAgg, region: authz.region, partition: authz.partition },
-    fetchImpl,
-  )) as Parameters<typeof parseTeamsChatListResponse>[0];
-  const items = parseTeamsChatListResponse(raw);
+  const items = await fetchTeamsListCandidatesDirect(tokens, fetchImpl);
   return buildTeamsListResult(items, options);
 }
 
@@ -551,13 +594,19 @@ export async function readTeamsDirect(
   options: TeamsReadOptions,
   fetchImpl: FetchFn = globalThis.fetch,
 ): Promise<TeamsReadResult> {
+  const targetId = normalizeTeamsReadTargetId(options.id);
+  const conversationId = getTeamsConversationIdFromTarget(targetId);
+  if (!conversationId) {
+    throw new Error('Direct Teams read only supports chat targets.');
+  }
+
   const authz = await fetchTeamsAuthzBootstrap(tokens.skype, fetchImpl);
   const raw = (await fetchTeamsMessages(
     {
       token: tokens.chatSvc,
       region: authz.region,
       partition: authz.partition,
-      conversationId: options.id,
+      conversationId,
       pageSize: options.limit,
     },
     fetchImpl,
@@ -572,9 +621,9 @@ export async function readTeamsDirect(
     }>;
   };
   const messages = parseTeamsMessagesResponse(raw);
-  const kind: TeamsItemKind = options.id.startsWith('/l/channel/') ? 'channel' : 'chat';
+  const kind: TeamsItemKind = targetId.startsWith('/l/channel/') ? 'channel' : 'chat';
   return buildTeamsReadResult(
-    { id: options.id, kind, title: options.id, path: options.id },
+    { id: targetId, kind, title: targetId, path: targetId },
     messages,
     options,
   );
@@ -615,10 +664,11 @@ export async function listTeams(options: TeamsListOptions): Promise<TeamsListRes
     await makeWindowUnobtrusive(page);
 
     // Try direct HTTP first (faster, more reliable)
+    let directItems: TeamsListCandidate[] | null = null;
     const tokens = await extractTeamsTokensFromPage(page);
     if (tokens) {
       try {
-        return await listTeamsDirect(tokens, options);
+        directItems = await fetchTeamsListCandidatesDirect(tokens);
       } catch {
         // Fall back to DOM scraping
       }
@@ -626,10 +676,14 @@ export async function listTeams(options: TeamsListOptions): Promise<TeamsListRes
 
     const shellError = await getTeamsShellError(page);
     if (shellError) {
+      if (directItems) {
+        return buildTeamsListResult(directItems, options);
+      }
       throw new Error(shellError);
     }
 
-    const items = normalizeTeamsListNodes(await collectTeamsListNodes(page));
+    const domItems = normalizeTeamsListNodes(await collectTeamsListNodes(page));
+    const items = directItems ? mergeTeamsListCandidates(directItems, domItems) : domItems;
     if (items.length === 0) {
       throw new Error(
         'Teams loaded but no chat or channel entries were detected. Open Teams once manually, then retry.',
@@ -648,7 +702,7 @@ export async function readTeams(options: TeamsReadOptions): Promise<TeamsReadRes
 
     // Try direct HTTP first (faster, doesn't need shell loaded)
     const tokens = await extractTeamsTokensFromPage(page);
-    if (tokens) {
+    if (tokens && !normalizeTeamsReadTargetId(options.id).startsWith('/l/channel/')) {
       try {
         return await readTeamsDirect(tokens, options);
       } catch {
@@ -680,10 +734,10 @@ export async function readTeams(options: TeamsReadOptions): Promise<TeamsReadRes
 
     return buildTeamsReadResult(
       {
-        id: options.id,
-        kind: options.id.startsWith('/l/channel/') ? 'channel' : 'chat',
+        id: normalizeTeamsReadTargetId(options.id),
+        kind: normalizeTeamsReadTargetId(options.id).startsWith('/l/channel/') ? 'channel' : 'chat',
         title: await page.title(),
-        path: options.id,
+        path: normalizeTeamsReadTargetId(options.id),
       },
       messages,
       options,
@@ -1187,5 +1241,63 @@ function getTextLines(...values: Array<string | null>): string[] {
 }
 
 function resolveTeamsTargetUrl(id: string): string {
-  return new URL(id, TEAMS_BASE_URL).toString();
+  return new URL(normalizeTeamsReadTargetId(id), TEAMS_BASE_URL).toString();
+}
+
+function buildTeamsChatPath(conversationId: string): string {
+  return `/l/chat/${encodeURIComponent(conversationId)}`;
+}
+
+function normalizeTeamsReadTargetId(id: string): string {
+  if (id.startsWith('/l/')) {
+    return id;
+  }
+
+  return buildTeamsChatPath(id);
+}
+
+function getTeamsConversationIdFromTarget(id: string): string | null {
+  if (!id.startsWith('/')) {
+    return id;
+  }
+
+  const url = new URL(id, TEAMS_BASE_URL);
+  if (!isTeamsAppOrigin(url.origin) || !url.pathname.startsWith('/l/chat/')) {
+    return null;
+  }
+
+  const [, , , encodedConversationId] = url.pathname.split('/');
+  return encodedConversationId ? decodeURIComponent(encodedConversationId) : null;
+}
+
+function parseEpochSeconds(value: string): number | null {
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function shouldReplaceMsalToken(
+  current: { secret: string; cachedAt: number; expiresAt: number } | undefined,
+  candidateCachedAt: number,
+  candidateExpiresAt: number,
+): boolean {
+  if (!current) {
+    return true;
+  }
+
+  return (
+    candidateCachedAt > current.cachedAt ||
+    (candidateCachedAt === current.cachedAt && candidateExpiresAt > current.expiresAt)
+  );
+}
+
+async function fetchTeamsListCandidatesDirect(
+  tokens: TeamsTokenSet,
+  fetchImpl: FetchFn = globalThis.fetch,
+): Promise<TeamsListCandidate[]> {
+  const authz = await fetchTeamsAuthzBootstrap(tokens.skype, fetchImpl);
+  const raw = (await fetchTeamsChatList(
+    { token: tokens.chatSvcAgg, region: authz.region, partition: authz.partition },
+    fetchImpl,
+  )) as Parameters<typeof parseTeamsChatListResponse>[0];
+  return parseTeamsChatListResponse(raw);
 }

@@ -13,6 +13,7 @@ import {
   formatTeamsList,
   formatTeamsRead,
   isTeamsAppOrigin,
+  mergeTeamsListCandidates,
   normalizeTeamsTargetId,
   parseTeamsChatListResponse,
   parseTeamsMessagesResponse,
@@ -31,7 +32,7 @@ describe('normalizeTeamsTargetId', () => {
         'https://teams.cloud.microsoft/l/chat/19%3Achat123%40thread.v2/0?tenantId=tenant-1',
       ),
     ).toEqual({
-      id: '/l/chat/19%3Achat123%40thread.v2/0?tenantId=tenant-1',
+      id: '/l/chat/19%3Achat123%40thread.v2',
       kind: 'chat',
     });
   });
@@ -161,6 +162,26 @@ describe('buildTeamsReadResult', () => {
     });
     expect(result.messages.map((message) => message.id)).toEqual(['m2', 'm3']);
   });
+
+  it('preserves the incoming message order instead of sorting lexicographically by id', () => {
+    const messages: TeamsMessage[] = [
+      { id: '10', author: 'Alex', sentAt: '2026-03-17T09:00:00.000Z', text: 'First' },
+      { id: '2', author: 'Sam', sentAt: '2026-03-17T09:05:00.000Z', text: 'Second' },
+    ];
+
+    const result = buildTeamsReadResult(
+      {
+        id: '/l/chat/chat-1',
+        kind: 'chat',
+        title: 'Design Sync',
+        path: 'Design Sync',
+      },
+      messages,
+      { limit: 20, offset: 0 },
+    );
+
+    expect(result.messages.map((message) => message.id)).toEqual(['10', '2']);
+  });
 });
 
 describe('formatTeamsRead', () => {
@@ -289,6 +310,48 @@ describe('extractTeamsTokensFromMsalCache', () => {
     };
     expect(extractTeamsTokensFromMsalCache(cache)).toBeNull();
   });
+
+  it('ignores expired tokens and prefers the newest cached matching entry', () => {
+    const now = Math.floor(Date.now() / 1000);
+    const cache: Record<string, TeamsMsalCacheEntry> = {
+      expired: {
+        secret: 'expired-skype',
+        target: 'https://api.spaces.skype.com/.default',
+        expires_on: String(now - 10),
+        cached_at: String(now - 20),
+      },
+      olderCsa: {
+        secret: 'older-csa',
+        target: 'https://chatsvcagg.teams.microsoft.com/.default',
+        expires_on: String(now + 3600),
+        cached_at: String(now - 30),
+      },
+      newerCsa: {
+        secret: 'newer-csa',
+        target: 'https://chatsvcagg.teams.microsoft.com/.default',
+        expires_on: String(now + 7200),
+        cached_at: String(now - 5),
+      },
+      skype: {
+        secret: 'fresh-skype',
+        target: 'https://api.spaces.skype.com/.default',
+        expires_on: String(now + 3600),
+        cached_at: String(now - 5),
+      },
+      chatSvc: {
+        secret: 'fresh-ic3',
+        target: 'https://ic3.teams.office.com/.default',
+        expires_on: String(now + 3600),
+        cached_at: String(now - 5),
+      },
+    };
+
+    expect(extractTeamsTokensFromMsalCache(cache)).toEqual({
+      skype: 'fresh-skype',
+      chatSvcAgg: 'newer-csa',
+      chatSvc: 'fresh-ic3',
+    });
+  });
 });
 
 describe('parseTeamsChatListResponse', () => {
@@ -328,11 +391,50 @@ describe('parseTeamsChatListResponse', () => {
     const [first, second] = items;
     expect(first).toBeDefined();
     expect(second).toBeDefined();
-    expect(first?.id).toBe('19:abc@thread.v2');
+    expect(first?.id).toBe('/l/chat/19%3Aabc%40thread.v2');
+    expect(first?.path).toBe('/l/chat/19%3Aabc%40thread.v2');
     expect(first?.title).toBe('Design Sync');
     expect(first?.kind).toBe('chat');
     expect(first?.preview).toBe('See you tomorrow');
     expect(second?.title).toContain('user1');
+  });
+});
+
+describe('mergeTeamsListCandidates', () => {
+  it('keeps direct chat results and appends missing DOM channels without duplicates', () => {
+    const merged = mergeTeamsListCandidates(
+      [
+        {
+          id: '/l/chat/19%3Achat1%40thread.v2',
+          kind: 'chat',
+          title: 'Project Alpha',
+          path: '/l/chat/19%3Achat1%40thread.v2',
+          preview: 'Latest update',
+          order: 0,
+        },
+      ],
+      [
+        {
+          id: '/l/chat/19%3Achat1%40thread.v2',
+          kind: 'chat',
+          title: 'Project Alpha',
+          path: '/l/chat/19%3Achat1%40thread.v2',
+          preview: 'Latest update',
+          order: 3,
+        },
+        {
+          id: '/l/channel/19%3Achannel1%40thread.tacv2/General?groupId=team-1',
+          kind: 'channel',
+          title: 'General',
+          path: 'Engineering / General',
+          preview: 'Build is green',
+          order: 4,
+        },
+      ],
+    );
+
+    expect(merged.map((item) => item.kind)).toEqual(['chat', 'channel']);
+    expect(merged[1]?.order).toBe(1);
   });
 });
 
@@ -389,6 +491,23 @@ describe('settleTeamsAsyncAction', () => {
         () => 'timed_out',
       ),
     ).resolves.toBe('timed_out');
+  });
+
+  it('clears the timeout when the action settles first', async () => {
+    vi.useFakeTimers();
+    try {
+      const resultPromise = settleTeamsAsyncAction(
+        async () => 'ready',
+        10_000,
+        () => 'timed_out',
+      );
+      await Promise.resolve();
+
+      expect(await resultPromise).toBe('ready');
+      expect(vi.getTimerCount()).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 
@@ -591,13 +710,18 @@ describe('readTeamsDirect', () => {
     const { readTeamsDirect } = await import('@clawpilot/browser/teams.js');
     const result = await readTeamsDirect(
       stubTokens,
-      { id: '19:chat1@thread.v2', limit: 50, offset: 0 },
+      { id: '/l/chat/19%3Achat1%40thread.v2', limit: 50, offset: 0 },
       mockFetch,
     );
 
     expect(mockFetch).toHaveBeenCalledTimes(2);
+    expect(mockFetch).toHaveBeenNthCalledWith(
+      2,
+      expect.stringContaining('/conversations/19%3Achat1%40thread.v2/messages'),
+      expect.any(Object),
+    );
     expect(result.messages).toHaveLength(1);
     expect(result.messages[0]?.text).toBe('Hello team');
-    expect(result.target.id).toBe('19:chat1@thread.v2');
+    expect(result.target.id).toBe('/l/chat/19%3Achat1%40thread.v2');
   });
 });
