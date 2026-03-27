@@ -70,6 +70,9 @@ pnpm test:watch
 pnpm lint
 ```
 
+TypeScript engineering guidance for this repo lives in [`docs/typescript-guidelines.md`](./docs/typescript-guidelines.md).
+The pre-commit hook runs `lint-staged` plus a staged-file guideline check for changed `.ts` and `.tsx` files.
+
 ## Project-local agent skills
 
 - `.agents/skills/typescript-pro` vendors a strong TypeScript specialist skill into the repo.

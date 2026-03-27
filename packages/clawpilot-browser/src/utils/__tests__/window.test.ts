@@ -9,6 +9,7 @@ describe('createBackgroundWindowLaunchOptions', () => {
   it('creates a headed tiny offscreen browser configuration', () => {
     const options = createBackgroundWindowLaunchOptions();
 
+    expect(options.channel).toBe('chrome');
     expect(options.headless).toBe(false);
     expect(options.viewport).toBeNull();
     expect(options.args).toEqual(

@@ -17,11 +17,12 @@ const LOAD_TIMEOUT_MS = 30_000;
 const RENDER_WAIT_MS = 10_000;
 const TEAMS_RECOVERY_TIMEOUT_MS = 60_000;
 const TEAMS_RECOVERY_POLL_INTERVAL_MS = 5_000;
-const TEAMS_AUTH_TIMEOUT_MS = 120_000;
+const TEAMS_AUTH_TIMEOUT_MS = 300_000;
 const TEAMS_AUTH_POLL_INTERVAL_MS = 2_000;
 const TEAMS_AUTH_PROBE_TIMEOUT_MS = 5_000;
 const TEAMS_LOGIN_TRIGGER_TIMEOUT_MS = 5_000;
 const TEAMS_CONTEXT_CLOSE_TIMEOUT_MS = 5_000;
+const TEAMS_PAGE_UNLOAD_TIMEOUT_MS = 2_000;
 
 export type TeamsAuthProbeStatus = 'authenticated' | 'interactive_auth_required' | 'probe_failed';
 export type TeamsInteractiveLoginTriggerStatus = 'triggered' | 'timed_out';
@@ -128,9 +129,13 @@ export interface TeamsTokenSet {
   chatSvc: string;
 }
 
+export function isTeamsAppOrigin(origin: string): boolean {
+  return origin === 'https://teams.microsoft.com' || origin === TEAMS_BASE_URL;
+}
+
 export function normalizeTeamsTargetId(href: string): { id: string; kind: TeamsItemKind } | null {
   const url = new URL(href, TEAMS_BASE_URL);
-  const isTeamsOrigin = [TEAMS_BASE_URL, 'https://teams.microsoft.com'].includes(url.origin);
+  const isTeamsOrigin = isTeamsAppOrigin(url.origin);
 
   if (!isTeamsOrigin) {
     return null;
@@ -264,8 +269,16 @@ export function formatTeamsRead(result: TeamsReadResult): string {
 
 export function detectTeamsShellError(snapshot: TeamsShellSnapshot): string | null {
   const normalizedButtons = snapshot.buttonTexts.map((button) => button.trim().toLowerCase());
+  const normalizedBody = snapshot.bodyText.trim().toLowerCase();
 
-  if (!normalizedButtons.includes('retry')) {
+  const hasRetryUi =
+    normalizedButtons.includes('retry') && normalizedButtons.includes('clear cache and retry');
+  const looksLikeRetryShell =
+    normalizedBody.includes('oops') ||
+    normalizedBody.includes('unknown error') ||
+    normalizedBody.includes('something went wrong');
+
+  if (!hasRetryUi || !looksLikeRetryShell) {
     return null;
   }
 
@@ -353,15 +366,44 @@ function stripHtml(html: string): string {
 }
 
 export function parseTeamsChatListResponse(
-  raw: Array<{
-    id: string;
-    title: string | null;
-    chatType: string;
-    lastMessage?: { content?: string; imdisplayname?: string; composetime?: string };
-    members?: Array<{ objectId: string }>;
-    hidden?: boolean;
-  }>,
+  raw:
+    | {
+        conversations: Array<{
+          id: string;
+          type: string;
+          threadProperties?: { topic?: string; threadType?: string };
+          lastMessage?: { composetime?: string; imdisplayname?: string; content?: string };
+        }>;
+      }
+    | Array<{
+        id: string;
+        title: string | null;
+        chatType: string;
+        lastMessage?: { content?: string; imdisplayname?: string; composetime?: string };
+        members?: Array<{ objectId: string }>;
+        hidden?: boolean;
+      }>,
 ): TeamsListCandidate[] {
+  // Handle chatsvc conversations format
+  if ('conversations' in raw) {
+    return raw.conversations
+      .filter(
+        (c) =>
+          !c.id.includes('notifications') &&
+          !c.id.includes('unq.gbl.spaces') &&
+          c.type === 'Conversation',
+      )
+      .map((c, i) => ({
+        id: c.id,
+        kind: (c.threadProperties?.threadType === 'channel' ? 'channel' : 'chat') as TeamsItemKind,
+        title: c.threadProperties?.topic ?? c.id,
+        path: `/l/chat/${encodeURIComponent(c.id)}`,
+        preview: c.lastMessage?.content ? stripHtml(c.lastMessage.content) : null,
+        order: i,
+      }));
+  }
+
+  // Handle legacy CSA groupchats format
   return raw
     .filter((c) => !c.hidden)
     .map((c, i) => ({
@@ -499,14 +541,7 @@ export async function listTeamsDirect(
   const raw = (await fetchTeamsChatList(
     { token: tokens.chatSvcAgg, region: authz.region, partition: authz.partition },
     fetchImpl,
-  )) as Array<{
-    id: string;
-    title: string | null;
-    chatType: string;
-    lastMessage?: { content?: string; imdisplayname?: string; composetime?: string };
-    members?: Array<{ objectId: string }>;
-    hidden?: boolean;
-  }>;
+  )) as Parameters<typeof parseTeamsChatListResponse>[0];
   const items = parseTeamsChatListResponse(raw);
   return buildTeamsListResult(items, options);
 }
@@ -578,10 +613,6 @@ export async function listTeams(options: TeamsListOptions): Promise<TeamsListRes
     await loadTeamsShell(page);
     await ensureTeamsAuthReady(page);
     await makeWindowUnobtrusive(page);
-    const shellError = await getTeamsShellError(page);
-    if (shellError) {
-      throw new Error(shellError);
-    }
 
     // Try direct HTTP first (faster, more reliable)
     const tokens = await extractTeamsTokensFromPage(page);
@@ -591,6 +622,11 @@ export async function listTeams(options: TeamsListOptions): Promise<TeamsListRes
       } catch {
         // Fall back to DOM scraping
       }
+    }
+
+    const shellError = await getTeamsShellError(page);
+    if (shellError) {
+      throw new Error(shellError);
     }
 
     const items = normalizeTeamsListNodes(await collectTeamsListNodes(page));
@@ -609,12 +645,8 @@ export async function readTeams(options: TeamsReadOptions): Promise<TeamsReadRes
     await loadTeamsShell(page);
     await ensureTeamsAuthReady(page);
     await makeWindowUnobtrusive(page);
-    const shellError = await getTeamsShellError(page);
-    if (shellError) {
-      throw new Error(shellError);
-    }
 
-    // Try direct HTTP first (faster, more reliable)
+    // Try direct HTTP first (faster, doesn't need shell loaded)
     const tokens = await extractTeamsTokensFromPage(page);
     if (tokens) {
       try {
@@ -624,6 +656,11 @@ export async function readTeams(options: TeamsReadOptions): Promise<TeamsReadRes
       }
     }
 
+    // DOM scraping fallback — needs shell fully loaded
+    const shellError = await getTeamsShellError(page);
+    if (shellError) {
+      throw new Error(shellError);
+    }
     await page.goto(resolveTeamsTargetUrl(options.id), {
       timeout: LOAD_TIMEOUT_MS,
       waitUntil: 'domcontentloaded',
@@ -659,15 +696,29 @@ async function withTeamsPage<T>(run: (page: Page) => Promise<T>): Promise<T> {
   let context: BrowserContext | undefined;
 
   try {
-    context = await chromium.launchPersistentContext(DEFAULT_STATE_DIR, {
-      ...createBackgroundWindowLaunchOptions(),
-    });
+    context = await chromium.launchPersistentContext(
+      DEFAULT_STATE_DIR,
+      createBackgroundWindowLaunchOptions(),
+    );
     const page = context.pages()[0] ?? (await context.newPage());
     await makeWindowUnobtrusive(page);
     return await run(page);
   } finally {
     if (context) {
       const contextToClose = context;
+      await Promise.all(
+        contextToClose.pages().map(async (page) => {
+          await settleTeamsAsyncAction(
+            () =>
+              page.goto('about:blank', {
+                timeout: TEAMS_PAGE_UNLOAD_TIMEOUT_MS,
+                waitUntil: 'domcontentloaded',
+              }),
+            TEAMS_PAGE_UNLOAD_TIMEOUT_MS + 1_000,
+            () => undefined,
+          );
+        }),
+      );
       await settleTeamsAsyncAction(
         () => contextToClose.close(),
         TEAMS_CONTEXT_CLOSE_TIMEOUT_MS,
@@ -701,13 +752,7 @@ async function maybeRetryShell(page: Page): Promise<void> {
 }
 
 async function isRetryShell(page: Page): Promise<boolean> {
-  const buttons = await page.evaluate(() =>
-    Array.from(document.querySelectorAll('button')).map((button) =>
-      (button.textContent ?? '').trim().toLowerCase(),
-    ),
-  );
-
-  return buttons.includes('retry');
+  return (await getTeamsShellError(page)) !== null;
 }
 
 async function getTeamsShellError(page: Page): Promise<string | null> {
@@ -771,7 +816,7 @@ async function waitForTeamsRecovery(page: Page): Promise<void> {
 }
 
 async function ensureTeamsAuthReady(page: Page): Promise<void> {
-  if (new URL(page.url()).origin !== 'https://teams.microsoft.com') {
+  if (!isTeamsAppOrigin(new URL(page.url()).origin)) {
     await page.goto(FALLBACK_TEAMS_URL, {
       timeout: LOAD_TIMEOUT_MS,
       waitUntil: 'domcontentloaded',
@@ -785,6 +830,11 @@ async function ensureTeamsAuthReady(page: Page): Promise<void> {
 
   while (true) {
     const probe = await probeTeamsAuth(page);
+
+    if (probe.status === null && probe.pageOrigin === TEAMS_BASE_URL) {
+      return;
+    }
+
     const status =
       probe.status === null
         ? 'interactive_auth_required'

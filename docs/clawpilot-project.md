@@ -17,6 +17,8 @@ It is inspired by [pi](https://github.com/badlogic/pi-mono) (the minimal agent f
 - **Personality-driven**: A configurable "soul" defines how Clawpilot communicates — tone, proactiveness, summary style, boundaries. The soul evolves as the agent learns your preferences.
 - **Graceful degradation**: Clawpilot detects whether Playwright is available and whether browser sessions are valid. When browser tools aren't available, it continues working with non-browser tools (CLI skills, file system, bash) and clearly reports what's degraded.
 
+TypeScript implementation guidance for maintainability and repo-specific engineering rules lives in [`docs/typescript-guidelines.md`](./typescript-guidelines.md).
+
 ### What It Does (Day in the Life)
 
 1. You open your laptop at 8am. Clawpilot starts, runs the morning briefing workflow: checks your Outlook calendar, queries your Jira board, searches Teams channels for overnight activity, and presents a briefing via desktop notification and the REPL log.
@@ -372,6 +374,7 @@ The search commands use the native search functionality built into Teams and Out
 - On subsequent use: Playwright launches with saved context, window minimised (headed but hidden)
 - Session expiry detection: if a page navigation lands on a login URL, CLI exits with a specific error code and message
 - Browser mode is **on-demand** by default: launch Chromium when a command is called, do the work, close. Configurable to **persistent** mode for lower latency
+- Implementation details for the current Teams runtime live in [`docs/teams-integration.md`](./teams-integration.md)
 
 **Health Check System:**
 
@@ -1336,6 +1339,7 @@ Complete list of tools available to the Clawpilot agent:
 - Teams: read messages from channels and chats
 - **Teams search**: search channels and chats by keyword with date filters
 - Teams: list channels, send messages
+- See [`docs/teams-integration.md`](./teams-integration.md) for the current auth, browser, token, and API flow used by the implemented Teams commands
 
 #### Step 4: clawpilot-browser — Outlook & Web
 

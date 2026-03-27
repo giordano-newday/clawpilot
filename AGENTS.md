@@ -21,6 +21,7 @@
 ## Repository-wide conventions
 
 - Package names, paths, and CLI names stay lowercase (`clawpilot`); human-facing product naming is `Clawpilot`.
+- Follow `docs/typescript-guidelines.md` for maintainable TypeScript design. Treat it as the written guidance, and remember staged `.ts`/`.tsx` changes are checked by the pre-commit TypeScript guideline hook in addition to lint-staged.
 - Keep `auth login` visible for manual sign-in. Background/non-login browser work should stay unobtrusive by default.
 - Reuse existing helpers for browser state, output formatting, and window behavior before adding new browser utilities.
 - Always work through a pull request for code changes: create or update a branch, open or update the PR, explicitly request Copilot review if it was not auto-requested, address review comments one by one, and reply to each review comment one by one with the resolution or rationale.

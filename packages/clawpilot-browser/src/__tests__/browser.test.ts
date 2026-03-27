@@ -2,7 +2,7 @@ import { describe, it, expect, afterEach } from 'vitest';
 import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { BrowserManager } from '@clawpilot/browser/browser.js';
+import { BrowserManager, isTeamsAuthenticatedUrl } from '@clawpilot/browser/browser.js';
 
 describe('BrowserManager', () => {
   let tempDir: string | undefined;
@@ -52,5 +52,15 @@ describe('BrowserManager', () => {
   it('clearSession is safe on nonexistent dir', () => {
     const manager = new BrowserManager('/tmp/clawpilot-nonexistent-' + Date.now());
     expect(() => manager.clearSession()).not.toThrow();
+  });
+});
+
+describe('isTeamsAuthenticatedUrl', () => {
+  it('recognizes both legacy and cloud Teams app urls as authenticated destinations', () => {
+    expect(isTeamsAuthenticatedUrl('https://teams.microsoft.com/v2/')).toBe(true);
+    expect(isTeamsAuthenticatedUrl('https://teams.cloud.microsoft/')).toBe(true);
+    expect(
+      isTeamsAuthenticatedUrl('https://login.microsoftonline.com/common/oauth2/v2.0/authorize'),
+    ).toBe(false);
   });
 });

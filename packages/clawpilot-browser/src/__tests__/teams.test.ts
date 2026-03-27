@@ -12,6 +12,7 @@ import {
   formatTeamsShellErrorMessage,
   formatTeamsList,
   formatTeamsRead,
+  isTeamsAppOrigin,
   normalizeTeamsTargetId,
   parseTeamsChatListResponse,
   parseTeamsMessagesResponse,
@@ -44,6 +45,14 @@ describe('normalizeTeamsTargetId', () => {
       id: '/l/channel/19%3Achannel456%40thread.tacv2/General?groupId=team-9&tenantId=tenant-1',
       kind: 'channel',
     });
+  });
+});
+
+describe('isTeamsAppOrigin', () => {
+  it('treats both teams.microsoft.com and teams.cloud.microsoft as authenticated Teams app origins', () => {
+    expect(isTeamsAppOrigin('https://teams.microsoft.com')).toBe(true);
+    expect(isTeamsAppOrigin('https://teams.cloud.microsoft')).toBe(true);
+    expect(isTeamsAppOrigin('https://login.microsoftonline.com')).toBe(false);
   });
 });
 
@@ -186,6 +195,15 @@ describe('detectTeamsShellError', () => {
     ).toBe(
       'Teams web client reached its retry screen ("Oops, unknown error!"). Open Teams manually and let it finish loading, then retry.',
     );
+  });
+
+  it('ignores incidental Retry buttons when the Teams shell otherwise looks healthy', () => {
+    expect(
+      detectTeamsShellError({
+        bodyText: 'Chat\nCalendar\nCalls\nPlanner\nTeams and channels',
+        buttonTexts: ['Retry', 'Clear cache and retry'],
+      }),
+    ).toBeNull();
   });
 });
 

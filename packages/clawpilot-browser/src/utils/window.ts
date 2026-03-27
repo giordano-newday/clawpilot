@@ -10,11 +10,13 @@ const FOREGROUND_WINDOW_X = 100;
 const FOREGROUND_WINDOW_Y = 100;
 
 export function createBackgroundWindowLaunchOptions(): {
+  channel: 'chrome';
   headless: false;
   viewport: null;
   args: string[];
 } {
   return {
+    channel: 'chrome',
     headless: false,
     viewport: null,
     args: [
