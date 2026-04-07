@@ -2,6 +2,7 @@
 
 import { Command } from 'commander';
 import { registerAuthCommands } from '@clawpilot/browser/commands/auth.js';
+import { registerConfluenceCommands } from '@clawpilot/browser/commands/confluence.js';
 import { registerHealthCommands } from '@clawpilot/browser/commands/health.js';
 import { registerTeamsCommands } from '@clawpilot/browser/commands/teams.js';
 import { registerWebCommands } from '@clawpilot/browser/commands/web.js';
@@ -15,6 +16,7 @@ program
 
 registerHealthCommands(program);
 registerAuthCommands(program);
+registerConfluenceCommands(program);
 registerTeamsCommands(program);
 registerWebCommands(program);
 

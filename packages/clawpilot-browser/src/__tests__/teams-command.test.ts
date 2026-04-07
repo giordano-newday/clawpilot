@@ -10,8 +10,10 @@ const errorMock = vi.fn((type: string, message: string) => ({
 }));
 const listTeamsMock = vi.fn();
 const readTeamsMock = vi.fn();
+const exportTeamsActivityMock = vi.fn();
 const formatTeamsListMock = vi.fn(() => 'formatted teams list');
 const formatTeamsReadMock = vi.fn(() => 'formatted teams read');
+const formatTeamsExportMock = vi.fn(() => 'formatted teams export');
 const consoleLogMock = vi.spyOn(console, 'log').mockImplementation(() => undefined);
 
 vi.mock('@clawpilot/browser/utils/output.js', () => ({
@@ -23,8 +25,10 @@ vi.mock('@clawpilot/browser/utils/output.js', () => ({
 vi.mock('@clawpilot/browser/teams.js', () => ({
   listTeams: listTeamsMock,
   readTeams: readTeamsMock,
+  exportTeamsActivity: exportTeamsActivityMock,
   formatTeamsList: formatTeamsListMock,
   formatTeamsRead: formatTeamsReadMock,
+  formatTeamsExport: formatTeamsExportMock,
 }));
 
 async function createProgram(): Promise<Command> {
@@ -42,8 +46,10 @@ describe('registerTeamsCommands', () => {
     errorMock.mockClear();
     listTeamsMock.mockReset();
     readTeamsMock.mockReset();
+    exportTeamsActivityMock.mockReset();
     formatTeamsListMock.mockClear();
     formatTeamsReadMock.mockClear();
+    formatTeamsExportMock.mockClear();
     consoleLogMock.mockClear();
   });
 
@@ -81,5 +87,34 @@ describe('registerTeamsCommands', () => {
     expect(readTeamsMock).toHaveBeenCalledWith({ id: '/l/chat/chat-1', limit: 20, offset: 0 });
     expect(formatTeamsReadMock).toHaveBeenCalled();
     expect(consoleLogMock).toHaveBeenCalledWith('formatted teams read');
+  });
+
+  it('prints JSON for teams export when requested', async () => {
+    exportTeamsActivityMock.mockResolvedValue({
+      since: '2026-03-24',
+      generatedAt: '2026-04-06T00:00:00.000Z',
+      items: [],
+    });
+
+    const program = await createProgram();
+    await program.parseAsync([
+      'node',
+      'test',
+      'teams',
+      'export',
+      '--since',
+      '2026-03-24',
+      '--json',
+    ]);
+
+    expect(exportTeamsActivityMock).toHaveBeenCalledWith({ since: '2026-03-24' });
+    expect(outputMock).toHaveBeenCalledWith({
+      ok: true,
+      data: {
+        since: '2026-03-24',
+        generatedAt: '2026-04-06T00:00:00.000Z',
+        items: [],
+      },
+    });
   });
 });

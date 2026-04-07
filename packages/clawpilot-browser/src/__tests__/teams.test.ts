@@ -280,6 +280,16 @@ describe('extractTeamsTokensFromMsalCache', () => {
     cached_at: String(Math.floor(Date.now() / 1000)),
   });
 
+  const makeCurrentCacheEntry = (
+    audience: string,
+    secret: string,
+  ): TeamsMsalCacheEntry & { expiresOn: string; cachedAt: string } => ({
+    secret,
+    target: `${audience}/user_impersonation ${audience}/.default`,
+    expiresOn: String(Math.floor(Date.now() / 1000) + 3600),
+    cachedAt: String(Math.floor(Date.now() / 1000)),
+  });
+
   it('extracts all three audience tokens from an MSAL localStorage dump', () => {
     const cache: Record<string, TeamsMsalCacheEntry> = {
       'oid.tid-login.windows.net-accesstoken-clientId-tid-skype': makeCacheEntry(
@@ -297,6 +307,30 @@ describe('extractTeamsTokensFromMsalCache', () => {
     };
 
     const result = extractTeamsTokensFromMsalCache(cache);
+    expect(result).toEqual({
+      skype: 'skype-token-abc',
+      chatSvcAgg: 'csa-token-def',
+      chatSvc: 'ic3-token-ghi',
+    });
+  });
+
+  it('extracts all three audience tokens from current Teams MSAL cache entries', () => {
+    const cache = {
+      'oid.tid-login.windows.net-accesstoken-clientId-tid-skype': makeCurrentCacheEntry(
+        'https://api.spaces.skype.com',
+        'skype-token-abc',
+      ),
+      'oid.tid-login.windows.net-accesstoken-clientId-tid-csa': makeCurrentCacheEntry(
+        'https://chatsvcagg.teams.microsoft.com',
+        'csa-token-def',
+      ),
+      'oid.tid-login.windows.net-accesstoken-clientId-tid-ic3': makeCurrentCacheEntry(
+        'https://ic3.teams.office.com',
+        'ic3-token-ghi',
+      ),
+    };
+
+    const result = extractTeamsTokensFromMsalCache(cache as Record<string, TeamsMsalCacheEntry>);
     expect(result).toEqual({
       skype: 'skype-token-abc',
       chatSvcAgg: 'csa-token-def',
@@ -396,7 +430,32 @@ describe('parseTeamsChatListResponse', () => {
     expect(first?.title).toBe('Design Sync');
     expect(first?.kind).toBe('chat');
     expect(first?.preview).toBe('See you tomorrow');
+    expect(first?.lastMessageAt).toBe('2026-03-18T09:00:00Z');
+    expect(first?.lastMessageAuthor).toBe('Alex');
     expect(second?.title).toContain('user1');
+    expect(second?.preview).toBe('Hello');
+    expect(second?.lastMessageAt).toBe('2026-03-17T08:00:00Z');
+    expect(second?.lastMessageAuthor).toBe('Sam');
+  });
+
+  it('preserves last-message metadata from the current Teams API shape', () => {
+    const raw = [
+      {
+        id: '19:xyz@thread.v2',
+        title: 'Aurora Tech',
+        chatType: 'chat',
+        lastMessage: {
+          content: '<p>same issue</p>',
+          imDisplayName: 'Maicovschi, Maxim',
+          composeTime: '2026-04-06T10:20:22.6870000Z',
+        },
+        hidden: false,
+      },
+    ];
+
+    const [first] = parseTeamsChatListResponse(raw);
+    expect(first?.lastMessageAt).toBe('2026-04-06T10:20:22.6870000Z');
+    expect(first?.lastMessageAuthor).toBe('Maicovschi, Maxim');
   });
 });
 

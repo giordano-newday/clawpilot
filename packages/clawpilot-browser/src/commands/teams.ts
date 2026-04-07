@@ -1,8 +1,10 @@
 import type { Command } from 'commander';
 import { error, output, success } from '@clawpilot/browser/utils/output.js';
 import {
+  exportTeamsActivity,
   formatTeamsList,
   formatTeamsRead,
+  formatTeamsExport,
   listTeams,
   readTeams,
 } from '@clawpilot/browser/teams.js';
@@ -11,6 +13,7 @@ interface TeamsCommandOptions {
   limit: string;
   offset: string;
   json: boolean;
+  since?: string;
 }
 
 export function registerTeamsCommands(program: Command): void {
@@ -71,6 +74,27 @@ export function registerTeamsCommands(program: Command): void {
       } catch (err) {
         output(
           error('teams_read_failed', err instanceof Error ? err.message : 'Teams read failed'),
+        );
+      }
+    });
+
+  teams
+    .command('export')
+    .description('Export Teams activity since a date')
+    .requiredOption('--since <date>', 'Inclusive ISO date or datetime lower bound')
+    .option('--json', 'Return structured JSON output', false)
+    .action(async (options: TeamsCommandOptions): Promise<void> => {
+      try {
+        const result = await exportTeamsActivity({ since: options.since ?? '' });
+        if (options.json) {
+          output(success(result));
+          return;
+        }
+
+        console.log(formatTeamsExport(result));
+      } catch (err) {
+        output(
+          error('teams_export_failed', err instanceof Error ? err.message : 'Teams export failed'),
         );
       }
     });
