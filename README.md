@@ -52,7 +52,7 @@ pnpm exec clawpilot-browser auth status
 pnpm exec clawpilot-browser auth clear
 ```
 
-`pnpm browser:install` builds `@clawpilot/browser` and installs the Playwright Chromium binary used by the health checks. After that, invoke the repo-local CLI with `pnpm exec clawpilot-browser ...` from the repository root.
+`pnpm browser:install` builds `@clawpilot/browser` and installs the Playwright browser binaries required by the health checks. After that, invoke the repo-local CLI with `pnpm exec clawpilot-browser ...` from the repository root.
 
 ## Development
 
