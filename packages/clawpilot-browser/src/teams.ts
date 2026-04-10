@@ -35,6 +35,8 @@ export interface TeamsListCandidate {
   title: string;
   path: string;
   preview: string | null;
+  lastMessageAt?: string | null;
+  lastMessageAuthor?: string | null;
   order: number;
 }
 
@@ -81,6 +83,27 @@ export interface TeamsReadOptions extends TeamsListOptions {
   id: string;
 }
 
+export interface TeamsExportOptions {
+  since: string;
+}
+
+export interface TeamsExportItem {
+  id: string;
+  kind: TeamsItemKind;
+  title: string;
+  path: string;
+  link: string;
+  preview: string | null;
+  lastMessageAt: string;
+  lastMessageAuthor: string | null;
+}
+
+export interface TeamsExportResult {
+  since: string;
+  generatedAt: string;
+  items: TeamsExportItem[];
+}
+
 interface RawTeamsListNode {
   href: string | null;
   text: string;
@@ -119,8 +142,10 @@ interface TeamsAuthProbeResult {
 export interface TeamsMsalCacheEntry {
   secret: string;
   target: string;
-  expires_on: string;
-  cached_at: string;
+  expires_on?: string;
+  cached_at?: string;
+  expiresOn?: string;
+  cachedAt?: string;
 }
 
 export interface TeamsTokenSet {
@@ -270,6 +295,34 @@ export function formatTeamsRead(result: TeamsReadResult): string {
   return lines.join('\n');
 }
 
+export function formatTeamsExport(result: TeamsExportResult): string {
+  const lines = [
+    `Teams activity since ${result.since} (${result.items.length} conversations)`,
+    `Generated at: ${result.generatedAt}`,
+    '',
+  ];
+
+  if (result.items.length === 0) {
+    lines.push('- None');
+    return lines.join('\n');
+  }
+
+  for (const item of result.items) {
+    lines.push(`- ${item.title}`);
+    lines.push(`  ID: ${item.id}`);
+    lines.push(`  Link: ${item.link}`);
+    lines.push(`  Last message: ${item.lastMessageAt}`);
+    if (item.lastMessageAuthor) {
+      lines.push(`  Author: ${item.lastMessageAuthor}`);
+    }
+    if (item.preview) {
+      lines.push(`  Preview: ${item.preview}`);
+    }
+  }
+
+  return lines.join('\n');
+}
+
 export function detectTeamsShellError(snapshot: TeamsShellSnapshot): string | null {
   const normalizedButtons = snapshot.buttonTexts.map((button) => button.trim().toLowerCase());
   const normalizedBody = snapshot.bodyText.trim().toLowerCase();
@@ -360,12 +413,12 @@ export function extractTeamsTokensFromMsalCache(
   > = {};
 
   for (const entry of Object.values(cache)) {
-    const expiresAt = parseEpochSeconds(entry.expires_on) ?? 0;
+    const expiresAt = parseEpochSeconds(entry.expires_on ?? entry.expiresOn) ?? 0;
     if (expiresAt <= nowEpochSeconds) {
       continue;
     }
 
-    const cachedAt = parseEpochSeconds(entry.cached_at) ?? 0;
+    const cachedAt = parseEpochSeconds(entry.cached_at ?? entry.cachedAt) ?? 0;
     for (const [key, audience] of Object.entries(TEAMS_TOKEN_AUDIENCES)) {
       const tokenKey = key as keyof TeamsTokenSet;
       if (
@@ -399,14 +452,26 @@ export function parseTeamsChatListResponse(
           id: string;
           type: string;
           threadProperties?: { topic?: string; threadType?: string };
-          lastMessage?: { composetime?: string; imdisplayname?: string; content?: string };
+          lastMessage?: {
+            composetime?: string;
+            composeTime?: string;
+            imdisplayname?: string;
+            imDisplayName?: string;
+            content?: string;
+          };
         }>;
       }
     | Array<{
         id: string;
         title: string | null;
         chatType: string;
-        lastMessage?: { content?: string; imdisplayname?: string; composetime?: string };
+        lastMessage?: {
+          content?: string;
+          imdisplayname?: string;
+          imDisplayName?: string;
+          composetime?: string;
+          composeTime?: string;
+        };
         members?: Array<{ objectId: string }>;
         hidden?: boolean;
       }>,
@@ -426,6 +491,8 @@ export function parseTeamsChatListResponse(
         title: c.threadProperties?.topic ?? c.id,
         path: buildTeamsChatPath(c.id),
         preview: c.lastMessage?.content ? stripHtml(c.lastMessage.content) : null,
+        lastMessageAt: c.lastMessage?.composetime ?? c.lastMessage?.composeTime ?? null,
+        lastMessageAuthor: c.lastMessage?.imdisplayname ?? c.lastMessage?.imDisplayName ?? null,
         order: i,
       }));
   }
@@ -439,6 +506,8 @@ export function parseTeamsChatListResponse(
       title: c.title ?? (c.members?.map((m) => m.objectId).join(', ') || 'Unnamed chat'),
       path: buildTeamsChatPath(c.id),
       preview: c.lastMessage?.content ? stripHtml(c.lastMessage.content) : null,
+      lastMessageAt: c.lastMessage?.composetime ?? c.lastMessage?.composeTime ?? null,
+      lastMessageAuthor: c.lastMessage?.imdisplayname ?? c.lastMessage?.imDisplayName ?? null,
       order: i,
     }));
 }
@@ -589,6 +658,54 @@ export async function listTeamsDirect(
   return buildTeamsListResult(items, options);
 }
 
+export async function exportTeamsActivity(
+  options: TeamsExportOptions,
+  fetchImpl: FetchFn = globalThis.fetch,
+): Promise<TeamsExportResult> {
+  const sinceDate = new Date(options.since);
+  if (Number.isNaN(sinceDate.getTime())) {
+    throw new Error('since must be a valid ISO date or datetime');
+  }
+
+  return withTeamsPage(async (page) => {
+    await loadTeamsShell(page);
+    await ensureTeamsAuthReady(page);
+    await makeWindowUnobtrusive(page);
+
+    const tokens = await extractTeamsTokensFromPage(page);
+    if (!tokens) {
+      throw new Error('Teams tokens were not available in the Teams app session.');
+    }
+
+    const items = await fetchTeamsListCandidatesDirect(tokens, fetchImpl);
+    const filtered = items
+      .filter((item): item is TeamsListCandidate & { lastMessageAt: string } => {
+        if (!item.lastMessageAt) {
+          return false;
+        }
+
+        const lastMessageDate = new Date(item.lastMessageAt);
+        return !Number.isNaN(lastMessageDate.getTime()) && lastMessageDate >= sinceDate;
+      })
+      .map((item) => ({
+        id: item.id,
+        kind: item.kind,
+        title: item.title,
+        path: item.path,
+        link: `${TEAMS_BASE_URL}${item.path}`,
+        preview: item.preview,
+        lastMessageAt: item.lastMessageAt,
+        lastMessageAuthor: item.lastMessageAuthor ?? null,
+      }));
+
+    return {
+      since: options.since,
+      generatedAt: new Date().toISOString(),
+      items: filtered,
+    };
+  });
+}
+
 export async function readTeamsDirect(
   tokens: TeamsTokenSet,
   options: TeamsReadOptions,
@@ -633,7 +750,14 @@ async function extractTeamsTokensFromPage(page: Page): Promise<TeamsTokenSet | n
   const msalEntries = await page.evaluate(() => {
     const entries: Record<
       string,
-      { secret: string; target: string; expires_on: string; cached_at: string }
+      {
+        secret: string;
+        target: string;
+        expires_on?: string;
+        cached_at?: string;
+        expiresOn?: string;
+        cachedAt?: string;
+      }
     > = {};
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
@@ -644,8 +768,10 @@ async function extractTeamsTokensFromPage(page: Page): Promise<TeamsTokenSet | n
           entries[key] = val as {
             secret: string;
             target: string;
-            expires_on: string;
-            cached_at: string;
+            expires_on?: string;
+            cached_at?: string;
+            expiresOn?: string;
+            cachedAt?: string;
           };
         }
       } catch {
@@ -1270,7 +1396,10 @@ function getTeamsConversationIdFromTarget(id: string): string | null {
   return encodedConversationId ? decodeURIComponent(encodedConversationId) : null;
 }
 
-function parseEpochSeconds(value: string): number | null {
+function parseEpochSeconds(value: string | undefined): number | null {
+  if (typeof value !== 'string') {
+    return null;
+  }
   const parsed = Number.parseInt(value, 10);
   return Number.isFinite(parsed) ? parsed : null;
 }

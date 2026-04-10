@@ -4,6 +4,7 @@
   "type": "module",
   "description": "A personal AI agent that runs on your laptop, learns from you, and gets things done.",
   "scripts": {
+    "browser:install": "pnpm --filter @clawpilot/browser build && pnpm --filter @clawpilot/browser exec playwright install chromium",
     "build": "pnpm -r build",
     "check:ts-guidelines": "node scripts/check-typescript-guidelines.mjs --staged",
     "test": "pnpm -r test",
@@ -27,12 +28,13 @@
     "node": ">=20.0.0"
   },
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
-    "eslint": "^10.0.3",
-    "eslint-config-prettier": "^10.1.8",
-    "husky": "^9.1.7",
-    "lint-staged": "^16.4.0",
-    "prettier": "^3.8.1",
-    "typescript-eslint": "^8.57.1"
+    "@clawpilot/browser": "workspace:*",
+    "@eslint/js": "10.0.1",
+    "eslint": "10.0.3",
+    "eslint-config-prettier": "10.1.8",
+    "husky": "9.1.7",
+    "lint-staged": "16.4.0",
+    "prettier": "3.8.1",
+    "typescript-eslint": "8.57.1"
   }
 }
